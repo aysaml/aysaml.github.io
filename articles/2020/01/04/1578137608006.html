@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>脏读、幻读和不可重复读 - 码恋</title><meta name="description" content="对数据库中脏读、幻读和不可重复读的问题进行解释说明，以及 MySQL 数据库怎样解决这些问题。"/><meta property="og:description" content="对数据库中脏读、幻读和不可重复读的问题进行解释说明，以及 MySQL 数据库怎样解决这些问题。"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="脏读、幻读和不可重复读 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2020/01/04/1578137608006.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="脏读、幻读和不可重复读 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2020/01/04/1578137608006.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="Dubbo源码阅读笔记" href="https://aysaml.github.io/articles/2020/01/04/1578130888106.html">
+            <link rel="next" title="Java 面试知识总结回顾" href="https://aysaml.github.io/interview.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">脏读、幻读和不可重复读</div>
+<div class="article__share"
+     data-title="脏读、幻读和不可重复读"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2020/01/04/1578137608006.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2020-01-07
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93">数据库</a> &nbsp;
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/MySQL">MySQL</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                脏读、幻读和不可重复读
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20180610.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20180610.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h2 id="toc_h2_0">一、引言</h2>
+<p>脏读、不可重复读和幻读是数据库中由于<strong>并发访问</strong>导致的数据读取问题。当多个事务同时进行时可以通过修改数据库事务的隔离级别来处理这三个问题。</p>
+<h2 id="toc_h2_1">二、问题解释</h2>
+<h3 id="toc_h3_2">1、脏读（读取未提交的数据）</h3>
+<p>脏读又称无效数据的读出，是指在数据库访问中，事务 A 对一个值做修改，事务 B 读取这个值，但是由于某种原因事务 A 回滚撤销了对这个值得修改，这就导致事务 B 读取到的值是无效数据。</p>
+<h3 id="toc_h3_3">2、不可重复读（前后数据多次读取，结果集内容不一致）</h3>
+<p>不可重复读即当事务 A 按照查询条件得到了一个结果集，这时事务 B 对事务 A 查询的结果集数据做了修改操作，之后事务 A 为了数据校验继续按照之前的查询条件得到的结果集<strong>与前一次查询不同</strong>，导致不可重复读取原始数据。</p>
+<h3 id="toc_h3_4">3、幻读（前后数据多次读取，结果集数量不一致）</h3>
+<p>幻读是指当事务 A 按照查询条件得到了一个结果集，这时事务 B 对事务 A 查询的结果集数据做新增操作，之后事务 A 继续按照之前的查询条件得到的结果集平白无故<strong>多了几条数据</strong>，好像出现了幻觉一样。</p>
+<h2 id="toc_h2_5">三、事务隔离</h2>
+<p>在并发条件下会出现上述问题，如何着手解决他们保证我们程序运行的正确性是非常重要的。数据库提供了 <strong>Read uncommitted 、Read committed 、Repeatable read 、Serializable</strong> 四种事务隔离级别来解决脏读、幻读和不可重复读问题，同时容易想到，可以通过加锁的方式实现事务隔离。</p>
+<p>在数据库的增删改查操作中，insert 、delete 、update 都会加排他锁，<strong>排它锁会阻止其他事务对其加锁的数据加任何类型的锁</strong>。而 select 只有显示声明才会加锁。</p>
+<ul>
+<li>
+<p>Read uncommitted</p>
+<blockquote>
+<p>读未提交，说的是一个事务可以读取到另一个事务未提交的数据修改。</p>
+</blockquote>
+<p>读若不显式声明是不加锁的，可以直接读取到另一个事务对数据的操作，没有避免脏读、不可重复读、幻读。</p>
+</li>
+<li>
+<p>Read committed</p>
+<blockquote>
+<p>读已提交，说的是一个事务只能读取到另一个事务已经提交的数据修改。</p>
+</blockquote>
+<p>很明显，这种隔离级别避免了脏读，但是可能会出现不可重复读、幻读。</p>
+</li>
+<li>
+<p>Repeatable read</p>
+<blockquote>
+<p>可重复读，保证了同一事务下多次读取相同的数据返回的结果集是一样的。</p>
+</blockquote>
+<p>这种隔离级别解决了脏读和不可重复读问题，但是扔有可能出现幻读。</p>
+</li>
+<li>
+<p>Serializable</p>
+<blockquote>
+<p>串行化，对同一数据的读写全加锁，即对同一数据的读写全是互斥了，数据可靠行很强，但是并发性能不忍直视。</p>
+</blockquote>
+<p>这种隔离级别虽然解决了上述三个问题，但是牺牲了性能。</p>
+</li>
+</ul>
+<p>总结如下表：  <code>√ 代表可能出现，× 代表不会出现。</code></p>
+<table>
+<thead>
+<tr><th align="left">隔离级别</th><th align="left">脏读</th><th align="left">不可重复读</th><th align="left">幻读</th></tr>
+</thead>
+<tbody>
+<tr><td align="left">Read uncommitted</td><td align="left">√</td><td align="left">√</td><td align="left">√</td></tr>
+<tr><td align="left">Read committed</td><td align="left">×</td><td align="left">√</td><td align="left">√</td></tr>
+<tr><td align="left">Repeatable read</td><td align="left">×</td><td align="left">×</td><td align="left">√</td></tr>
+<tr><td align="left">Serializable</td><td align="left">×</td><td align="left">×</td><td align="left">×</td></tr>
+</tbody>
+</table>
+<h2 id="toc_h2_6">四、MySQL 事务隔离级别的实现</h2>
+<p>在 MySQL 中只有 InnoDB 存储引擎支持事务，但是在日常使用 MySQL 时我们好像没有怎么关心过上述三个问题啊...</p>
+<p>原因很简单，MySQL 默认 <strong>Repeatable read</strong> 隔离级别，使用了 MVCC 技术，并且解决了幻读问题。</p>
+<h3 id="toc_h3_7">MVCC</h3>
+<hr>
+<p>MVCC 全名多版本并发控制，使用它可以保证 InnoDB 存储引擎下读操作的一致性。使用 MVCC 可以查询被另一个事务修改的行数据，并且可以查看这些行被更新之前的数据，值得注意的是<strong>使用 MVCC 增加了多事务的并发性能，但是并没有解决幻读问题</strong>。</p>
+<h4 id="toc_h4_8">1、原理</h4>
+<p>MVCC 是通过保存数据在某个时间点的快照来实现的。也就是说在同一个事务的生命周期中，数据的快照始终是相同的；而在多个事务中，由于事务的时间点很可能不相同，数据的快照也不尽相同。</p>
+<h4 id="toc_h4_9">2、实现细节</h4>
+<ul>
+<li>每行数据都存在一个版本，每次数据更新时都更新该版本。</li>
+<li>修改时Copy出当前版本随意修改，各个事务之间互不干扰。</li>
+<li>保存时比较版本号，如果成功（commit），则覆盖原记录；失败则放弃copy（rollback）。</li>
+</ul>
+<p>通过上面特点我们可以看出，MVCC 其实就是类似乐观锁的一种实现。</p>
+<h4 id="toc_h4_10">3、InnoDB 中 MVCC 实现</h4>
+<p>在 InnoDB 中为每行增加两个隐藏的字段，分别是该行数据<strong>创建时的版本号</strong>和<strong>删除时的版本号</strong>，这里的版本号是系统版本号（可以简单理解为事务的 ID），每开始一个新的事务，系统版本号就自动递增，作为事务的 ID 。通常这两个版本号分别叫做创建时间和删除时间。</p>
+<p>下面通过具体的例子来帮助理解 InnoDB 中 MVCC 实现，</p>
+<p>首先创建一个表：</p>
+<pre><code>create table info( 
+id int primary key auto_increment, 
+name varchar(20));
+</code></pre>
+<p>INSERT<br>
+InnoDB 为新插入的每一行保存当前系统版本号作为版本号。现在假设事务的版本号从 1 开始。</p>
+<p><strong>第一个事务</strong> ID为1；</p>
+<pre><code>start transaction;
+insert into info values(NULL,'a');
+insert into info values(NULL,'b');
+insert into info values(NULL,'c');
+commit;
+</code></pre>
+<p>对应在数据中的表如下(后面两列是隐藏列,也就是版本号)</p>
+<table>
+<thead>
+<tr><th>id</th><th>name</th><th>创建版本(事务ID)</th><th>删除版本(事务ID)</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>a</td><td>1</td><td>undefined</td></tr>
+<tr><td>2</td><td>b</td><td>1</td><td>undefined</td></tr>
+<tr><td>3</td><td>c</td><td>1</td><td>undefined</td></tr>
+</tbody>
+</table>
+<blockquote>
+<p>SELECT</p>
+</blockquote>
+<p>InnoDB 会根据下面两个条件检查每行记录:</p>
+<ul>
+<li>
+<p>只会查找版本<strong>早于当前事务版本的数据行</strong>（行的系统版本号小于或等于事务的系统版本号)，这样可以确保事务读取的行，要么是<strong>在事务开始前已经存在的</strong>，要么是<strong>事务自身插入或者修改过的</strong>。</p>
+</li>
+<li>
+<p><strong>行的删除版本要么未定义</strong>,<strong>要么大于当前事务版本号</strong>,这可以确保事务读取到的行，在<strong>事务开始之前未被删除</strong>。</p>
+</li>
+</ul>
+<p>只有 a, b 同时满足的记录，才能返回作为查询结果.</p>
+<hr>
+<blockquote>
+<p>DELETE</p>
+</blockquote>
+<p>InnoDB会为删除的每一行保存当前系统的版本号(事务的ID)作为删除标识.<br>
+看下面的具体例子分析:</p>
+<p><strong>第二个事务</strong> ID为2;</p>
+<pre><code>start transaction;
+select * from info;  //(1)
+select * from info;  //(2)
+commit;
+</code></pre>
+<ul>
+<li>假设1<br>
+假设在执行这个事务 ID 为 2 的过程中，刚执行到 (1) ,这时,有另一个事务 ID 为 3 往这个表里插入了一条数据;</li>
+</ul>
+<p><strong>第三个事务</strong>ID为3;</p>
+<pre><code>start transaction;
+insert into info values(NULL,'d');
+commit;
+</code></pre>
+<p>这时表中的数据如下:</p>
+<table>
+<thead>
+<tr><th>id</th><th>name</th><th>创建版本(事务ID)</th><th>删除版本(事务ID)</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>a</td><td>1</td><td>undefined</td></tr>
+<tr><td>2</td><td>b</td><td>1</td><td>undefined</td></tr>
+<tr><td>3</td><td>c</td><td>1</td><td>undefined</td></tr>
+<tr><td>4</td><td>d</td><td>3</td><td>undefined</td></tr>
+</tbody>
+</table>
+<p>然后接着执行 <strong>事务2</strong> 中的 (2) ，由于 id=4 的数据的创建时间(事务 ID 为 3 ),执行当前事务的 ID 为 2 ，而 InnoDB 只会查找事务 ID 小于等于当前事务 ID 的数据行,所以 id=4 的数据行并不会在执行 <strong>事务2</strong> 中的 (2) 被检索出来,在 *<em>事务2</em> *中的两条 select 语句检索出来的数据都只会如下表:</p>
+<table>
+<thead>
+<tr><th>id</th><th>name</th><th>创建版本(事务ID)</th><th>删除版本(事务ID)</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>a</td><td>1</td><td>undefined</td></tr>
+<tr><td>2</td><td>b</td><td>1</td><td>undefined</td></tr>
+<tr><td>3</td><td>c</td><td>1</td><td>undefined</td></tr>
+</tbody>
+</table>
+<ul>
+<li>假设2<br>
+假设在执行这个事务 ID 为 2 的过程中，刚执行到 (1) ,假设事务执行完 <strong>事务3</strong> 后，接着又执行了 <strong>事务4</strong> ;</li>
+</ul>
+<p><strong>第四个事务</strong>:</p>
+<pre><code>start   transaction;  
+delete from info where id=1;
+commit;  
+</code></pre>
+<p>此时数据库中的表数据如下:</p>
+<table>
+<thead>
+<tr><th>id</th><th>name</th><th>创建版本(事务ID)</th><th>删除版本(事务ID)</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>a</td><td>1</td><td>4</td></tr>
+<tr><td>2</td><td>b</td><td>1</td><td>undefined</td></tr>
+<tr><td>3</td><td>c</td><td>1</td><td>undefined</td></tr>
+<tr><td>4</td><td>d</td><td>3</td><td>undefined</td></tr>
+</tbody>
+</table>
+<p>接着执行事务 ID 为 2 的 <strong>事务(2)</strong>，根据 SELECT 检索条件可以知道,它会检索创建时间(创建事务的 ID )小于当前事务 ID 的行和删除时间(删除事务的 ID )大于当前事务的行,而 id=4 的行上面已经说过，而 id=1 的行由于删除时间(删除事务的 ID )大于当前事务的 ID ，所以 <strong>事务2</strong> 的 (2) select * from info 也会把 id=1 的数据检索出来。所以，<strong>事务2</strong> 中的两条 select 语句检索出来的数据都如下:</p>
+<table>
+<thead>
+<tr><th>id</th><th>name</th><th>创建版本(事务ID)</th><th>删除版本(事务ID)</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>a</td><td>1</td><td>4</td></tr>
+<tr><td>2</td><td>b</td><td>1</td><td>undefined</td></tr>
+<tr><td>3</td><td>c</td><td>1</td><td>undefined</td></tr>
+</tbody>
+</table>
+<hr>
+<blockquote>
+<p>UPDATE</p>
+</blockquote>
+<p>InnoDB 执行 UPDATE，实际上是<strong>新插入了一行记录</strong>，并保存其创建时间为当前事务的 ID ，同时保存当前事务 ID 到要 UPDATE 的行的删除时间。</p>
+<ul>
+<li>假设3<br>
+假设在执行完 <strong>事务2</strong> 的 (1) 后又执行，其它用户执行了事务  3和 4，这时，又有一个用户对这张表执行了 UPDATE 操作:</li>
+</ul>
+<p><strong>第五个事务</strong>:</p>
+<pre><code>start  transaction;
+update info set name='b' where id=2;
+commit;
+</code></pre>
+<p>根据update的更新原则：会生成新的一行，并在原来要修改的列的删除时间列上添加本事务ID，得到表如下:</p>
+<table>
+<thead>
+<tr><th>id</th><th>name</th><th>创建版本(事务ID)</th><th>删除版本(事务ID)</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>a</td><td>1</td><td>4</td></tr>
+<tr><td>2</td><td>b</td><td>1</td><td>5</td></tr>
+<tr><td>3</td><td>c</td><td>1</td><td>undefined</td></tr>
+<tr><td>4</td><td>d</td><td>3</td><td>undefined</td></tr>
+<tr><td>2</td><td>b</td><td>5</td><td>undefined</td></tr>
+</tbody>
+</table>
+<p>继续执行 <strong>事务2</strong> 的 (2) ，根据 select 语句的检索条件，得到下表:</p>
+<table>
+<thead>
+<tr><th>id</th><th>name</th><th>创建版本(事务ID)</th><th>删除版本(事务ID)</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>a</td><td>1</td><td>4</td></tr>
+<tr><td>2</td><td>b</td><td>1</td><td>5</td></tr>
+<tr><td>3</td><td>c</td><td>1</td><td>undefined</td></tr>
+</tbody>
+</table>
+<p>还是和 <strong>事务2</strong> 中 (1) select 得到相同的结果。</p>
+<p>❀ 总结：</p>
+<blockquote>
+<ul>
+<li>SELECT<br>
+读取创建版本号小于或等于当前事务版本号，并且删除版本号为空或大于当前事务版本号的记录。如此可以保证在事务在读取之前记录是存在的。</li>
+<li>INSERT<br>
+将当前事务的版本号保存至插入行的创建版本号。</li>
+<li>UPDATE<br>
+新插入一行，并以当前事务的版本号作为新行的创建版本号，同时将原记录行的删除版本号设置为当前事务版本号。</li>
+<li>DELETE<br>
+将当前事务的版本号保存至行的删除版本号。</li>
+</ul>
+</blockquote>
+<p>例子参考：<a href="https://blog.csdn.net/whoamiyang/article/details/51901888" target="_blank">https://blog.csdn.net/whoamiyang/article/details/51901888</a></p>
+<hr>
+<h4 id="toc_h4_11">4、 InnoDB 如何解决幻读问题</h4>
+<p>在 InnoDB 中分为<strong>快照读</strong>和<strong>当前读</strong>。快照读读的是数据的快照，也就是数据的历史版本；当前读就是读的最新版本的数据，并且在读的时候加锁，其他事务都不能对当前行做修改。</p>
+<blockquote>
+<ul>
+<li>快照读：简单的 select 操作，属于快照读，不加锁。<br>
+select * from table where ?;</li>
+</ul>
+</blockquote>
+<blockquote>
+<ul>
+<li>当前读：特殊的读操作，插入、更新、删除操作，属于当前读，需要加锁。<br>
+select * from table where ? lock in share mode;<br>
+select * from table where ? for update;<br>
+insert into table values (…);<br>
+update table set ? where ?;<br>
+delete from table where ?;</li>
+</ul>
+</blockquote>
+<p>对于上面当前读的语句，第一条读取记录加共享锁，其他的全部加排它锁。</p>
+<p>也就是说在做数据的修改操作时，都会使用当前读的方式，当前读是通过行锁和间隙锁控制的，此时是加了排他锁的，所有其他的事务都不能动当前的事务，所以避免了出现幻读的可能。</p>
+<p>而为了防止幻读，行锁和间隙锁扮演了重要角色，下面简单说一下：</p>
+<ul>
+<li>
+<p>行锁<br>
+字面意思简单理解对数据行加锁，注意 InnoDB 行锁是通过给索引上的索引项加锁来实现的，也就是说<strong>只有通过索引条件检索数据，InnoDB才使用行级锁，否则，InnoDB将使用表锁！</strong></p>
+</li>
+<li>
+<p>间隙锁<br>
+间隙锁就是用来为数据行之间的间隙来进行加锁。</p>
+</li>
+</ul>
+<p>举个例子：</p>
+<pre><code>select * from info where id &gt; 5;
+</code></pre>
+<p>上面 SQL 中，其中 id 是主键，假设在一个 <strong>事务 A</strong> 中执行这个查询，第一次查询为一个 <strong>结果集 1</strong> 。在做第二次查询时，另一个 <strong>事务 B</strong> 在 info 表进行了插入数据 7 和 10 的操作。在 <strong>事务 A</strong> 再次执行此查询查询出 <strong>结果集 2</strong> 的时候，发现多了几条记录，如此便产生了幻读。</p>
+<ul>
+<li>结果集1</li>
+</ul>
+<pre><code>6,8,9
+</code></pre>
+<ul>
+<li>结果集2</li>
+</ul>
+<pre><code>6,7,8,9,10
+</code></pre>
+<p>所以试想为了防止幻读，我们不但要现存的 id &gt; 5 的数据行（6,8,9）上面加锁（行锁），还要在它们的间隙加锁（间隙锁）。</p>
+<p>我们以区间来表示要加锁对象：</p>
+<p>(5,6]<br>
+(6,8]<br>
+(8,9]<br>
+(9,+∞)</p>
+<p>其中区间的右闭即为要加的行锁，而区间的范围即是要加的间隙锁。</p>
+<h2 id="toc_h2_12">五、结语</h2>
+<p>关于脏读、不可重复读和幻读的理解便记录到这里了，因笔者水平有限，如有错误欢迎指正。</p>
+                    <div>
+                        <hr>
+
+标题：脏读、幻读和不可重复读<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2020/01/04/1578137608006.html" target="_blank">https://aysaml.github.io/articles/2020/01/04/1578137608006.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h2">
+            <a href="#toc_h2_0">一、引言</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_1">二、问题解释</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_2">1、脏读（读取未提交的数据）</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_3">2、不可重复读（前后数据多次读取，结果集内容不一致）</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_4">3、幻读（前后数据多次读取，结果集数量不一致）</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_5">三、事务隔离</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_6">四、MySQL 事务隔离级别的实现</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_7">MVCC</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_8">1、原理</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_9">2、实现细节</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_10">3、InnoDB 中 MVCC 实现</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_11">4、 InnoDB 如何解决幻读问题</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_12">五、结语</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1578137608006"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1578137608006",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1578137608006",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1578137608006', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 44ms, 2020/07/29 15:41:16 -->

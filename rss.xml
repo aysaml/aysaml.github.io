@@ -1,0 +1,2182 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <title>码恋</title>
+    <link>https://aysaml.github.io</link>
+    <atom:link href="https://aysaml.github.io/rss.xml" rel="self" type="application/rss+xml"/>
+    <description>ALL YOUR SMILES, ALL MY LIFE.</description>
+    <generator>Solo, v4.3.0, https://solo.b3log.org</generator>
+    <lastBuildDate>Wed, 29 Jul 2020 15:41:16 +0800</lastBuildDate>
+    <language>zh-cn</language>
+    <item>
+      <title>Dubbo源码阅读笔记</title>
+      <link>https://aysaml.github.io/articles/2020/01/04/1578130888106.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20190706.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<p><a href="http://dubbo.apache.org/zh-cn/" target="_blank">Apache Dubbo™</a> 是一款高性能 Java RPC 框架。不同于其他博客，一上来就是讲怎么怎么用，我们将从 Dubbo 重要的核心特性和步骤入手，来学习 Dubbo 架构如何实现连通性、健壮性、伸缩性、以及向未来架构的升级性。</p>
+<hr>
+<p><img src="https://img.hacpai.com/file/2020/01/image-45d86a88.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt=""></p>
+<h2>文章列表</h2>
+<h3>《<a href="https://aysaml.com/articles/2019/11/15/1573790514430.html">Dubbo 系列笔记之项目结构</a>》</h3>
+<h3>《<a href="https://aysaml.com/articles/2019/12/14/1576312634579.html">Dubbo 系列笔记之特殊示例用法</a>》</h3>
+<h3>《<a href="https://aysaml.com/articles/2019/09/18/1568797105593.html">Dubbo 系列笔记之 XML 配置文件解析流程</a>》</h3>
+<h3>《<a href="https://aysaml.com/articles/2019/12/17/1576579214365.html">Dubbo 系列笔记之 SPI 实现</a>》</h3>
+<h3>《<a href="https://aysaml.com/articles/2019/12/20/1576840669968.html">Dubbo 系列笔记之自适应扩展机制</a>》</h3>
+<h4>持续更新中...❤️️</h4>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2020/01/04/1578130888106.html</guid>
+      <category>目录</category>
+      <pubDate>Tue, 14 Jul 2020 19:56:09 +0800</pubDate>
+    </item>
+    <item>
+      <title>Dubbo系列笔记之项目结构</title>
+      <link>https://aysaml.github.io/articles/2019/11/15/1573790514430.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20190602.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h4>关于 <code>Dubbo</code> ， 最初是只想取一些比较重要的地方去做记录，但是总感觉知识学得比较零散，一块一块的，所以最近准备 Skr~Dubbo 了。</h4>
+<p><strong>学习 Dubbo 的第一步，从头至尾，先把<a href="http://dubbo.apache.org/zh-cn/docs/user/quick-start.html" target="_blank">官方文档</a>看一遍！！！</strong></p>
+<h2>1. 概述</h2>
+<blockquote>
+<p>Dubbo 版本，本系列笔记基于 Dubbo 2.6.5，后续代码可能有部分基于官方 github 最新代码，请知悉 。</p>
+</blockquote>
+<p>推荐先阅读 Duubbo 的官方文档：<a href="http://dubbo.apache.org/zh-cn/index.html" target="_blank">http://dubbo.apache.org/zh-cn/index.html</a></p>
+<p>在 Dubbo 笔记的本篇，主要对 Dubbo 的整体项目结构有一个比较清晰的认知，知道 Dubbo 是如何分层的，以及它的整体调用过程。</p>
+<h2>2. 调试环境搭建</h2>
+<ul>
+<li>Fork Dubbo<br>
+首先阅读一个源码之前，建议大家可以先 Fork 到自己的仓库，方便阅读的时候添加注释。</li>
+<li>clone 到本地<br>
+这里选择 Dubbo 的 2.6.5 版本，资料比较多，支持了 Dubbo 的绝大多少特性。</li>
+</ul>
+<pre><code class="language-text">	git clone https://github.com/wangning1018/dubbo.git
+	git checkout dubbo-2.6.5
+</code></pre>
+<ul>
+<li>搭建本地 <code>Zookeeper</code> 环境<br>
+Dubbo 官方比较推荐的是使用 Zookeeper 作为注册中心，所以在一开始调试，就选择 Zookeeper ，而不是用 Demo 中默认的  <code>MulticastRegistry</code> 作为调试注册中心，注意 <code>MulticastRegistry</code> 仅适用于小规模的或者开发模式。</li>
+</ul>
+<p>安装并启动 Zookeeper 。</p>
+<ul>
+<li>
+<p>配置文件修改<br>
+修改 dubbo-demo 中 consumer 和 provider 的注册中心配置为 Zookeeper 。</p>
+<p><code>&lt;dubbo:registry address="zookeeper://127.0.0.1:2181"/&gt;</code></p>
+</li>
+</ul>
+<h2>3. 整体结构一览</h2>
+<p><img src="https://img.hacpai.com/file/2019/11/image-d2a97987.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>可以看到 Dubbo 分成了许多模块，下面我们简单说一下每个模块的功能。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-d8ca8932.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>上图是取自 Dubbo 官网的项目模块分包图，列举了 8 个主要的模块，可以很清晰的看出它们之间的依赖关系。</p>
+<p>下面自源码的从上到下，简单看一下每个模块都是做什么的。</p>
+<h3>3.1 <code>dubbo-all</code> 打包模块</h3>
+<p>这个模块里面只有一个 <code>pom.xml</code> ，是 Dubbo 的 maven 打包脚本。</p>
+<h3>3.2 <code>dubbo-bom</code> 依赖管理模块</h3>
+<p>同样，里面只有一个 <code>pom.xml</code> ，通过 Maven 的 <code>&lt;dependencyManagement&gt;</code> 统一定义了 Dubbo 项目本身每个包的版本。</p>
+<h3>3.3 <code>dubbo-dependencies-bom</code> 第三方依赖版本管理模块</h3>
+<p>历史再一次同样，该模块是 Dubbo 对所依赖的第三方 jar 包进行了一个统一管理，通过这样一个 bom 后续再项目中做引入，就可以保证同一个 jar 包版本的一致性，避免依赖冲突。</p>
+<p>关于 Maven BOM 的更多详细内容参见 <a href="https://blog.csdn.net/LoveJavaYDJ/article/details/86594226" target="_blank">《Maven中BOM》</a> 这篇博客。</p>
+<h3>3.4 <code>dubbo-distribution</code>  打包存放模块</h3>
+<p>Dubbo 准备 # Apache Release 会打包到此目录。</p>
+<h3>3.5 <code>dubbo-bootstrap</code> 启动模块</h3>
+<p>这个模块里只有 <code>DubboBootstrap</code> 这一个类，负责启动 <code>Dubbo</code> 。</p>
+<h3>3.6 <code>dubbo-cluster</code> 集群模块</h3>
+<p>集群模块负责把多个服务提供者封装为一个，并提供负载均衡, 集群容错，路由，分组聚合等功能，集群的地址列表可以静态配置，也可以由配置中心下发。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-b7d4e887.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>上图展示了集群模块的基本包结构，下面我们分别来看一下相关功能大体是由哪些组成的。</p>
+<h4>❀ 容错</h4>
+<ul>
+<li>由 <code>com.alibaba.dubbo.rpc.cluster.Cluster</code> 接口和 <code>com.alibaba.dubbo.rpc.cluster.support</code> 包实现</li>
+<li><code>Cluster</code> 将 <code>Directory</code> 中的多个 <code>Invoker</code> 封装为一个 <code>Invoker</code> ，对上层透明，并在这个过程中加入了容错逻辑，调用失败后，尝试调用下一个 <code>Invoker</code> 。</li>
+</ul>
+<h4>❀ 配置</h4>
+<ul>
+<li>由 <code>com.alibaba.dubbo.rpc.cluster.Configurator</code> 接口和 <code>com.alibaba.dubbo.rpc.cluster.configurator</code> 包实现</li>
+<li>这里支持从<strong>服务</strong>和<strong>应用</strong>两个粒度来调整动态配置，实现了无需重启应用的情况下，就可以动态调整RPC调用行为。</li>
+</ul>
+<h4>❀ 字典</h4>
+<ul>
+<li>由 <code>com.alibaba.dubbo.rpc.cluster.Directory</code> 接口和 <code>com.alibaba.dubbo.rpc.cluster.directory</code> 包实现</li>
+<li>主要功能就是存放 Invoker ，用一个 List 实现，Directory 中 Invoker 的值可以通过注册中心推送来进行动态的变更。</li>
+</ul>
+<h4>❀ 负载均衡</h4>
+<ul>
+<li>由 <code>com.alibaba.dubbo.rpc.cluster.LoadBalance</code> 接口和 <code>com.alibaba.dubbo.rpc.cluster.loadbalance</code> 包实现。</li>
+<li>实现多个 Invoker 的负载均衡，这里实现了四种均衡策略，默认是随机调用策略。</li>
+</ul>
+<h4>❀ 合并结果</h4>
+<ul>
+<li>由 <code>com.alibaba.dubbo.rpc.cluster.Merger</code> 接口和 <code>com.alibaba.dubbo.rpc.cluster.merger</code> 包组成。</li>
+<li>实现对返回结果的合并，简单来说就是一个接口有多种实现，消费者需要一一调用这些实现，并实现结果的合并返回。比如菜单服务，接口一样，但有多种实现，用group区分，现在消费方需从每种group中调用一次返回结果，合并结果返回，这样就可以实现聚合菜单项。</li>
+<li>参见 Dubbo 官方的例子： <a href="https://github.com/apache/dubbo-samples/tree/master/dubbo-samples-merge" target="_blank">https://github.com/apache/dubbo-samples/tree/master/dubbo-samples-merge</a></li>
+</ul>
+<h4>❀ 路由</h4>
+<ul>
+<li>由 <code>com.alibaba.dubbo.rpc.cluster.Router</code> 接口和 <code>com.alibaba.dubbo.rpc.cluster.router</code> 包组成</li>
+<li>路由规则在发起一次RPC调用前起到过滤目标服务器地址的作用，过滤后的地址列表，将作为消费端最终发起RPC调用的备选地址。</li>
+<li>详细参见 <a href="http://dubbo.apache.org/zh-cn/docs/user/demos/routing-rule.html" target="_blank">《Dubbo 官方文档 -- 路由规则》</a></li>
+</ul>
+<p>下面是 Dubbo 官网的调用关系图：</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-554a95b3.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>具体参考 <a href="http://dubbo.apache.org/zh-cn/docs/user/demos/fault-tolerent-strategy.html" target="_blank">《Dubbo 集群容错》</a></p>
+<h3>3.7 <code>dubbo-common</code> 公共逻辑模块</h3>
+<p>这个模块主要是一些工具类和通用模型。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-d318d780.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>可以看到里面一堆的各种 util 和 一些通用模型：比如：<code>com.alibaba.dubbo.common.URL</code> 。</p>
+<h3>3.8 <code>dubbo-config</code> 配置模块</h3>
+<p>是 Dubbo 对外的 API，用户通过 Config 使用Dubbo，隐藏 Dubbo 所有细节。</p>
+<h3>3.9 <code>dubbo-container</code> 容器模块</h3>
+<p>这个模块是一个 Standlone 的容器，以简单的 Main 加载 Spring 启动，因为服务通常不需要 Tomcat/JBoss 等 Web 容器的特性，没必要用 Web 容器去加载服务。</p>
+<ul>
+<li><code>dubbo-container-api</code> ：定义了 <code>com.alibaba.dubbo.container.Container</code> 接口，里面包含了容器的 <code>start()</code> 和 <code>stop()</code> 方法，并提供加载所有容器启动的 Main 类。</li>
+<li>实现 <code>dubbo-container-api</code>
+<ul>
+<li><code>dubbo-container-spring</code> ，提供了 <code>com.alibaba.dubbo.container.spring.SpringContainer</code> 。</li>
+<li><code>dubbo-container-log4j</code> ，提供了 <code>com.alibaba.dubbo.container.log4j.Log4jContainer</code> 。</li>
+<li><code>dubbo-container-logback</code> ，提供了 <code>com.alibaba.dubbo.container.logback.LogbackContainer</code> 。</li>
+</ul>
+</li>
+</ul>
+<h3>3.10 <code>dubbo-demo</code> 示例模块</h3>
+<p>提供 Spring 形式的提供者和消费者示例代码，可以使用这个模块进行基础调试，观察服务的暴露和消费过程。</p>
+<h3>3.11 <code>dubbo-filter</code> 过滤器模块</h3>
+<p><img src="https://img.hacpai.com/file/2019/11/image-b9c37e02.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li><code>dubbo-filter-cache</code> ，缓存过滤器。
+<ul>
+<li>对调用返回的结果做缓存。</li>
+</ul>
+</li>
+<li><code>dubbo-filter-validation</code> ，参数验证过滤器。
+<ul>
+<li>参数验证功能是基于 <a href="https://jcp.org/en/jsr/detail?id=303" target="_blank">JSR303</a> 实现的，用户只需标识 JSR303 标准的验证 annotation，并通过声明 filter 来实现验证。具体参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/parameter-validation.html" target="_blank">《Dubbo 官方文档 -- 参数验证》</a>。</li>
+</ul>
+</li>
+</ul>
+<h3>3.12 <code>dubbo-monitor</code> 监控模块</h3>
+<p>统计服务调用次数，调用时间的，调用链跟踪的服务。顺便提一下，调用链路追踪现在 Skywalking 比较流行。</p>
+<h3>3.13 <code>dubbo-plugin</code> 插件模块</h3>
+<p>顾名思义，为用户提供插件。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-65c95b2e.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>目前就一个在线运维命令的插件。</p>
+<h3>3.14 <code>dubbo-registry</code> 注册中心模块</h3>
+<p><img src="https://img.hacpai.com/file/2019/11/image-126500e8.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li><code>dubbo-registry-api</code> 定义了一个注册中心需要实现的注册、发现逻辑接口。</li>
+<li>其他的是注册中心的不同实现，官方推荐使用 Zookeeper 作为注册中心。</li>
+</ul>
+<h3>3.15 <code>dubbo-remoting</code> 远程通讯模块</h3>
+<p><img src="https://img.hacpai.com/file/2019/11/image-288379c9.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>相当于 Dubbo 协议的实现，如果 RPC 用 RMI协议则不需要使用此包。</p>
+<ul>
+<li>里面封装了各种客户端和服务端的通信方式实现。</li>
+</ul>
+<h3>3.16 <code>dubbo-rpc</code> 远程调用模块</h3>
+<p><img src="https://img.hacpai.com/file/2019/11/image-6a1c7230.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>这个模块抽象了各种协议，以及动态代理，只包含一对一的调用，不关心集群的管理。</p>
+<ul>
+<li><code>dubbo-rpc-api</code> ，<strong>抽象</strong>各种协议以及动态代理，<strong>实现</strong>了一对一的调用。</li>
+<li>其他模块，实现 <code>dubbo-rpc-api</code> ，提供对应的协议实现。在 <a href="http://dubbo.apache.org/zh-cn/docs/user/references/protocol/introduction.html" target="_blank">《用户指南 —— 协议参考手册》</a> 中，可以看到每种协议的介绍。</li>
+<li>Dubbo 默认使用 dubbo 协议。</li>
+<li>这个模块是整个 Dubbo 的中心，需要我们详细了解。</li>
+</ul>
+<h3>3.17 <code>dubbo-serialization</code> 数据序列化模块</h3>
+<p><img src="https://img.hacpai.com/file/2019/11/image-fcd182b0.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>可以看到实现了多种方式做对象序列化工作。</p>
+<h3>3.18 <code>dubbo-test</code> 测试模块</h3>
+<p>涵盖了比较完整的 Dubbo 测试，可以用来了解每个功能点的实现特性。</p>
+<hr>
+<p>上面用了较长的篇幅一一介绍了 Dubbo 源码中每个 maven 模块的用途，其实总结起来就是 Dubbo 的十层架构设计，如下图：</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-1d88af76.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<blockquote>
+<p>图例说明：</p>
+<ul>
+<li>图中左边淡蓝背景的为服务消费方使用的接口，右边淡绿色背景的为服务提供方使用的接口，位于中轴线上的为双方都用到的接口。</li>
+<li>图中从下至上分为十层，各层均为单向依赖，右边的黑色箭头代表层之间的依赖关系，每一层都可以剥离上层被复用，其中，Service 和 Config 层为 API，其它各层均为 SPI。</li>
+<li>图中绿色小块的为扩展接口，蓝色小块为实现类，图中只显示用于关联各层的实现类。</li>
+<li>图中蓝色虚线为初始化过程，即启动时组装链，红色实线为方法调用过程，即运行时调时链，紫色三角箭头为继承，可以把子类看作父类的同一个节点，线上的文字为调用的方法。</li>
+</ul>
+</blockquote>
+<hr>
+<h3>整体架构</h3>
+<p><img src="https://img.hacpai.com/file/2019/11/image-9ee5385a.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<blockquote>
+<p>图例说明：</p>
+<ul>
+<li>图中小方块 Protocol, Cluster, Proxy, Service, Container, Registry, Monitor 代表层或模块，蓝色的表示与业务有交互，绿色的表示只对 Dubbo 内部交互。</li>
+<li>图中背景方块 Consumer, Provider, Registry, Monitor 代表部署逻辑拓扑节点。</li>
+<li>图中蓝色虚线为初始化时调用，红色虚线为运行时异步调用，红色实线为运行时同步调用。</li>
+<li>图中只包含 RPC 的层，不包含 Remoting 的层，Remoting 整体都隐含在 Protocol 中。</li>
+</ul>
+</blockquote>
+<hr>
+<h3>调用链</h3>
+<p>展开总设计图的红色调用链，如下：</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-5b149148.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<hr>
+<h3>暴露服务时序</h3>
+<p>展开总设计图左边服务提供方暴露服务的蓝色初始化链，时序图如下：</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-bfff82e1.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h3>引用服务时序</h3>
+<p>展开总设计图右边服务消费方引用服务的蓝色初始化链，时序图如下：</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-e1ebc696.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2019/11/15/1573790514430.html</guid>
+      <category>dubbo</category>
+      <pubDate>Tue, 14 Jul 2020 16:42:55 +0800</pubDate>
+    </item>
+    <item>
+      <title>Dubbo 系列笔记之自适应扩展机制</title>
+      <link>https://aysaml.github.io/articles/2019/12/20/1576840669968.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20191106.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h2>一、引言</h2>
+<p>上一篇我们说了 Dubbo SPI 的扩展类加载过程以及 Dubbo IOC 的实现，Dubbo 的很多扩展都是基于 SPI 来加载的，如 Cluster、Protocol 等等。有时，我们希望有些扩展不在框架启动的时候就加载，而是想在扩展方法被调用的时候，通过动态参数按需加载。</p>
+<p>这就产生了一个问题，我想调用扩展方法（非静态），但是扩展还没有被加载。也就是说，扩展类还没有被 new 出实例，那么就不能调用其方法。想要调用方法，必须提前加载扩展类，而我们不想在框架启动时就加载，死循环...</p>
+<h2>二、理解自适应扩展</h2>
+<p>对于上面的问题，Dubbo 使用自适应扩展机制解决。同时官方文档中还为我们提供了一个例子帮助理解什么是自适应扩展，如下：</p>
+<ul>
+<li>车轮制造接口 <code>WheelMaker</code></li>
+</ul>
+<pre><code class="language-java">public interface WheelMaker {
+    Wheel makeWheel(URL url);
+}
+</code></pre>
+<ul>
+<li><code>WheelMaker</code> 接口的自适应实现类 <code>AdaptiveWheelMaker</code></li>
+</ul>
+<pre><code class="language-java">public class AdaptiveWheelMaker implements WheelMaker {
+    public Wheel makeWheel(URL url) {
+        if (url == null) {
+            throw new IllegalArgumentException("url == null");
+        }
+        
+    	// 1.从 URL 中获取 WheelMaker 名称
+        String wheelMakerName = url.getParameter("Wheel.maker");
+        if (wheelMakerName == null) {
+            throw new IllegalArgumentException("wheelMakerName == null");
+        }
+        
+        // 2.通过 SPI 加载具体的 WheelMaker
+        WheelMaker wheelMaker = ExtensionLoader
+            .getExtensionLoader(WheelMaker.class).getExtension(wheelMakerName);
+        
+        // 3.调用目标方法
+        return wheelMaker.makeWheel(url);
+    }
+}
+</code></pre>
+<p><code>AdaptiveWheelMaker</code> 做了三件事情：</p>
+<blockquote>
+<ol>
+<li>从给定参数中获取扩展名称</li>
+<li>通过 SPI 加载特定的扩展类</li>
+<li>调用扩展类方法返回执行结果</li>
+</ol>
+</blockquote>
+<ul>
+<li>接下来，我们来看看汽车制造厂 CarMaker 接口与其实现类。</li>
+</ul>
+<pre><code class="language-java">public interface CarMaker {
+    Car makeCar(URL url);
+}
+
+public class RaceCarMaker implements CarMaker {
+    WheelMaker wheelMaker;
+ 
+    // 通过 setter 注入 AdaptiveWheelMaker
+    public setWheelMaker(WheelMaker wheelMaker) {
+        this.wheelMaker = wheelMaker;
+    }
+ 
+    public Car makeCar(URL url) {
+        Wheel wheel = wheelMaker.makeWheel(url);
+        return new RaceCar(wheel, ...);
+    }
+}
+</code></pre>
+<p>注意到 <code>RaceCarMaker</code> 有一个成员变量 <code>wheelMaker</code> ，在程序运行时我们将 <code>AdaptiveWheelMaker</code> 通过 setter 方法注入到 <code>RaceCarMaker</code> 中，这样当传入一个 URL 参数时，就可以调用 <code>AdaptiveWheelMaker</code> 的 <code>makeWheel(URL url)</code> 方法解析 URL 参数，通过 SPI 加载特定的扩展类并调用其方法放回一个 <code>Wheel</code> 对象。</p>
+<p>如上，就是 Dubbo 的自适应扩展机制的基本原理：<strong>当扩展接口的方法被调用时，生成扩展代理类并通过 SPI 加载具体的扩展实现，调用扩展对象的同名方法。</strong></p>
+<p>也就是说，<strong>Dubbo 自适应扩展机制解决了在调用扩展接口方法时，扩展类未被加载方法不能调用的问题。</strong></p>
+<h2>三、源码一探</h2>
+<p>接下来，我们跟随 Dubbo 源码，看自适应扩展机制如何实现。</p>
+<h3>1. @Adaptive 注解</h3>
+<p>在文章开始就说到 Cluster 是基于 SPI 来加载的，所以看下 Cluster 接口：</p>
+<pre><code class="language-java">@SPI(Cluster.DEFAULT)
+public interface Cluster {
+    String DEFAULT = FailoverCluster.NAME;
+
+    /**
+     * Merge the directory invokers to a virtual invoker.
+     *
+     * @param &lt;T&gt;
+     * @param directory
+     * @return cluster invoker
+     * @throws RpcException
+     */
+    @Adaptive
+    &lt;T&gt; Invoker&lt;T&gt; join(Directory&lt;T&gt; directory) throws RpcException;
+
+    static Cluster getCluster(String name) {
+        return getCluster(name, true);
+    }
+
+    static Cluster getCluster(String name, boolean wrap) {
+        if (StringUtils.isEmpty(name)) {
+            name = Cluster.DEFAULT;
+        }
+        return ExtensionLoader.getExtensionLoader(Cluster.class).getExtension(name, wrap);
+    }
+}
+</code></pre>
+<p>可以看到 <code>Join(Directory&lt;T&gt; directory)</code> 方法上面加了一个 @Adaptive 的注解，该注解如下：</p>
+<pre><code class="language-java">/**
+ * Provide helpful information for {@link ExtensionLoader} to inject dependency extension instance.
+ *
+ * @see ExtensionLoader
+ * @see URL
+ */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface Adaptive {
+    String[] value() default {};
+}
+</code></pre>
+<blockquote>
+<p>当 Adaptive 注解在类上时，Dubbo 不会为该类生成代理类。注解在方法（接口方法）上时，Dubbo 则会为该方法生成代理逻辑。Adaptive 注解在类上的情况很少，在 Dubbo 中，仅有两个类被 Adaptive 注解了，分别是 AdaptiveCompiler 和 AdaptiveExtensionFactory。此种情况，表示拓展的加载逻辑由人工编码完成。更多时候，Adaptive 是注解在接口方法上的，表示拓展的加载逻辑需由框架自动生成。</p>
+</blockquote>
+<p>通过注释我们可以知道 <code>@Adaptive</code> 是帮助 <code>ExtensionLoader</code> 注入依赖的扩展实例。</p>
+<h3>2. getAdaptiveExtension( ) 方法</h3>
+<p>跟随注释我们进入 <code>ExtensionLoader</code> 一探究竟，注意到与自适应拓展相关的有一个关键方法 <code>public T getAdaptiveExtension()</code> ：</p>
+<pre><code class="language-java">public T getAdaptiveExtension() {
+        // 缓存中取
+        Object instance = cachedAdaptiveInstance.get();
+	// 缓存未命中
+        if (instance == null) {
+            if (createAdaptiveInstanceError != null) {
+                throw new IllegalStateException("Failed to create adaptive instance: " +
+                        createAdaptiveInstanceError.toString(),
+                        createAdaptiveInstanceError);
+            }
+
+            synchronized (cachedAdaptiveInstance) {
+                instance = cachedAdaptiveInstance.get();
+                if (instance == null) {
+                    try {
+                        // 创建自适应扩展实例
+                        instance = createAdaptiveExtension();
+                        // 加入缓存
+                        cachedAdaptiveInstance.set(instance);
+                    } catch (Throwable t) {
+                        createAdaptiveInstanceError = t;
+                        throw new IllegalStateException("Failed to create adaptive instance: " + t.toString(), t);
+                    }
+                }
+            }
+        }
+
+        return (T) instance;
+    }
+</code></pre>
+<p><code>getAdaptiveExtension( )</code> 逻辑比较简单，首先从缓存中取，没有取到就调用 <code>createAdaptiveExtension( )</code> 方法创建自适应扩展，然后加入缓存。</p>
+<p>接下来我们继续看 <code>createAdaptiveExtension( )</code> 方法：</p>
+<pre><code class="language-java">private T createAdaptiveExtension() {
+        try {
+            // 获取自适应扩展类，并通过反射实例化
+            return injectExtension((T) getAdaptiveExtensionClass().newInstance());
+        } catch (Exception e) {
+            throw new IllegalStateException("Can't create adaptive extension " + type + ", cause: " + e.getMessage(), e);
+        }
+    }
+</code></pre>
+<p>可以看到其中比较关键的一行代码，<code>return injectExtension((T) getAdaptiveExtensionClass().newInstance());</code> ，它<br>
+执行了三个方法，下面说明：</p>
+<ul>
+<li>injectExtension()<br>
+这个方法是为了向扩展实例中注入自适应扩展依赖，在 Dubbo 中有两种形式的自适应拓展，一种是 Dubbo 自动生成的不需要注入；另一种是开发者手动编写的，需要调用这个方法注入依赖。</li>
+</ul>
+<pre><code class="language-java">private T injectExtension(T instance) {
+
+        if (objectFactory == null) {
+            return instance;
+        }
+
+        try {
+            for (Method method : instance.getClass().getMethods()) {
+                if (!isSetter(method)) {
+                    continue;
+                }
+                // 加 @DisableInject 注解的方法不需要自动注入扩展
+                if (method.getAnnotation(DisableInject.class) != null) {
+                    continue;
+                }
+                // 方法的返回值如果是基本类型，int/long等等，包括一些包装类型 String/Date/Boolean 等等，不是调用注入扩展的方法
+                Class&lt;?&gt; pt = method.getParameterTypes()[0];
+                if (ReflectUtils.isPrimitives(pt)) {
+                    continue;
+                }
+
+                try {
+                    // 获取 get 方法的属性名
+                    String property = getSetterProperty(method);
+                    // 通过 SPI 获取扩展实例
+                    Object object = objectFactory.getExtension(pt, property);
+                    if (object != null) {
+                        // 调用 set 方法注入自适应扩展实例
+                        method.invoke(instance, object);
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to inject via method " + method.getName()
+                            + " of interface " + type.getName() + ": " + e.getMessage(), e);
+                }
+
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return instance;
+    }
+</code></pre>
+<ul>
+<li><code>getAdaptiveExtensionClass( )</code> 获取自适应扩展的 Class 对象</li>
+</ul>
+<pre><code class="language-java">private Class&lt;?&gt; getAdaptiveExtensionClass() {
+        // 获取所有的扩展实现类，并加入缓存
+        getExtensionClasses();
+        // 从缓存中取
+        if (cachedAdaptiveClass != null) {
+            return cachedAdaptiveClass;
+        }
+        // 获取自适应扩展类
+        return cachedAdaptiveClass = createAdaptiveExtensionClass();
+    }
+</code></pre>
+<p>下面直接看 <code>createAdaptiveExtensionClass()</code> 方法：</p>
+<pre><code class="language-java"> private Class&lt;?&gt; createAdaptiveExtensionClass() {
+        // 通过 AdaptiveClassCodeGenerator 构建自适应扩展类代码
+        String code = new AdaptiveClassCodeGenerator(type, cachedDefaultName).generate();
+        // 获取类加载器
+        ClassLoader classLoader = findClassLoader();
+        // 获取编译器实现类
+        org.apache.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
+        // 编译代码，生成 Class 对象
+        return compiler.compile(code, classLoader);
+    }
+</code></pre>
+<p>到这里，我们可以知道，<strong>Dubbo 的自适应扩展机制中自己生成了自适应扩展的代理类</strong>，如此，不需在框架启动阶段就通过 SPI 加载所有的实现类，就可以在运行期通过动态参数调用扩展方法。</p>
+<h3>3. <code>AdaptiveClassCodeGenerator</code> 如何生成自适应扩展代码</h3>
+<p><code>AdaptiveClassCodeGenerator</code> 类大约有 400 行的代码，这也是 Dubbo 自适应扩展机制的核心，接下来会用较长的篇幅来说明。</p>
+<h4>3.1 <code>AdaptiveClassCodeGenerator</code> 构造方法</h4>
+<pre><code class="language-java">public AdaptiveClassCodeGenerator(Class&lt;?&gt; type, String defaultExtName) {
+        this.type = type;
+        this.defaultExtName = defaultExtName;
+    }
+</code></pre>
+<p>其中有两个参数，<code>type</code> 为扩展类的接口类型，<code>defaultExtName</code> 为 @SPI 中指定的默认扩展。</p>
+<h4>3.2 <code>generate()</code> 方法</h4>
+<p>接下来，我们从 <code>generate()</code> 方法入手：</p>
+<pre><code class="language-java">public String generate() {
+        // 判断类方法是否有 @Adaptive 注解
+        if (!hasAdaptiveMethod()) {
+            throw new IllegalStateException("No adaptive method exist on extension " + type.getName() + ", refuse to create the adaptive class!");
+        }
+        // 类结构生成，package/import/class
+        StringBuilder code = new StringBuilder();
+        // package + type 所在包
+        code.append(generatePackageInfo());
+        // import + ExtensionLoader全限定名
+        code.append(generateImports());
+        // public class + type简单名称 + $Adaptive + implements + type全限定名 + {
+        code.append(generateClassDeclaration());
+        // 生成方法
+        Method[] methods = type.getMethods();
+        for (Method method : methods) {
+            code.append(generateMethod(method));
+        }
+        code.append("}");
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(code.toString());
+        }
+        return code.toString();
+    }
+</code></pre>
+<p>继续以 <code>Cluster</code> 为例，除生成的方法外代码如下：</p>
+<pre><code class="language-java">package org.apache.dubbo.rpc.cluster;
+import org.apache.dubbo.common.extension.ExtensionLoader;
+public class Cluster$Adaptive implements org.apache.dubbo.rpc.cluster.Cluster {
+    // 省略方法代码
+}
+</code></pre>
+<h4>3.3 <code>generateMethod(Method method)</code> 方法</h4>
+<p>继续看 <code>generateMethod(Method method)</code> 如何生成方法：</p>
+<pre><code class="language-java">private String generateMethod(Method method) {
+        // 返回类型
+        String methodReturnType = method.getReturnType().getCanonicalName();
+        // 方法名
+        String methodName = method.getName();
+        // 生成方法内容
+        String methodContent = generateMethodContent(method);
+        // 参数
+        String methodArgs = generateMethodArguments(method);
+        // 异常
+        String methodThrows = generateMethodThrows(method);
+        return String.format(CODE_METHOD_DECLARATION, methodReturnType, methodName, methodArgs, methodThrows, methodContent);
+    }
+</code></pre>
+<ul>
+<li>生成方法内容：</li>
+</ul>
+<pre><code class="language-java">private String generateMethodContent(Method method) {
+        // 获取方法的 @Adaptive 注解
+        Adaptive adaptiveAnnotation = method.getAnnotation(Adaptive.class);
+        StringBuilder code = new StringBuilder(512);
+        // 若注解为空则抛出异常
+        if (adaptiveAnnotation == null) {
+            return generateUnsupported(method);
+        } else {
+            // 获取 URL 参数的下标
+            int urlTypeIndex = getUrlTypeIndex(method);
+
+            // 参数列表中存在 URL 类型的参数
+            if (urlTypeIndex != -1) {
+                // 为空抛出异常校验，url 赋值
+                code.append(generateUrlNullCheck(urlTypeIndex));
+            } else {
+                // 没有找到 URL 参数，调用类似 getUrl 的 getter 方法获取
+                code.append(generateUrlAssignmentIndirectly(method));
+            }
+            // 获取 @Adaptive 注解的 value 值
+            String[] value = getMethodAdaptiveValue(adaptiveAnnotation);
+            // 参数总是否有 Invocation 类型的
+            boolean hasInvocation = hasInvocationArgument(method);
+            // Invocation 类型参数空值校验
+            code.append(generateInvocationArgumentNullCheck(method));
+            // ***生成拓展名获取逻辑***
+            code.append(generateExtNameAssignment(value, hasInvocation));
+            // check extName == null?
+            code.append(generateExtNameNullCheck(value));
+            // 生成使用 SPI 加载扩展类代码
+            code.append(generateExtensionAssignment());
+
+            // return statement
+            code.append(generateReturnAndInvocation(method));
+        }
+
+        return code.toString();
+    }
+</code></pre>
+<p>在这个方法中开始就执行了获取 URL 参数的逻辑。我们知道在 Dubbo 中 URL 主要作用是为扩展点间传递数据，在 URL 中除了一些比较重要的值外，使用键值对的形式传递。</p>
+<p>组成 URL 的具体参数：</p>
+<ul>
+<li>protocol：一般是 dubbo 中的各种协议 如：dubbo thrift http zk</li>
+<li>username/password：用户名/密码</li>
+<li>host/port：主机/端口</li>
+<li>path：接口名称</li>
+<li>parameters：参数键值对</li>
+</ul>
+<p>回到这里讲的 Dubbo 自适应扩展机制，这里 <strong>URL 中携带了要执行的目标扩展名称。</strong></p>
+<h4>3.4  生成扩展名获取逻辑方法 <code>generateExtNameAssignment(...)</code></h4>
+<p>在上面生成方法内容的代码中有一个方法是 <code>generateExtNameAssignment(String[] value, boolean hasInvocation)</code> 。</p>
+<pre><code class="language-java">private String generateExtNameAssignment(String[] value, boolean hasInvocation) {
+        String getNameCode = null;
+        // value 是 @Adaptive 的值，主要逻辑是生成从 URL 中获取扩展名的代码
+        for (int i = value.length - 1; i &gt;= 0; --i) {
+            if (i == value.length - 1) {
+                // defaultExtName 是 @SPI 中指定的默认扩展名
+                if (null != defaultExtName) {
+                    // 上面也说了 URL 的组成，protocol 可以直接使用 get 方法获取，其他的要从参数 map 中取
+                    if (!"protocol".equals(value[i])) {
+                        if (hasInvocation) {
+                            getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
+                        } else {
+                            getNameCode = String.format("url.getParameter(\"%s\", \"%s\")", value[i], defaultExtName);
+                        }
+                    } else {
+                        getNameCode = String.format("( url.getProtocol() == null ? \"%s\" : url.getProtocol() )", defaultExtName);
+                    }
+                } else {
+                    if (!"protocol".equals(value[i])) {
+                        if (hasInvocation) {
+                            getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
+                        } else {
+                            getNameCode = String.format("url.getParameter(\"%s\")", value[i]);
+                        }
+                    } else {
+                        getNameCode = "url.getProtocol()";
+                    }
+                }
+            } else {
+                if (!"protocol".equals(value[i])) {
+                    if (hasInvocation) {
+                        getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
+                    } else {
+                        getNameCode = String.format("url.getParameter(\"%s\", %s)", value[i], getNameCode);
+                    }
+                } else {
+                    getNameCode = String.format("url.getProtocol() == null ? (%s) : url.getProtocol()", getNameCode);
+                }
+            }
+        }
+
+        return String.format(CODE_EXT_NAME_ASSIGNMENT, getNameCode);
+    }
+
+</code></pre>
+<p>代码的分支虽然多，但是只做了一件事情，生成获取扩展名的代码。根据不同情况，生成的代码例子可以直观的看下面：</p>
+<pre><code class="language-java">String extName = (url.getProtocol() == null ? "dubbo" : url.getProtocol());
+</code></pre>
+<p>或</p>
+<pre><code class="language-java">String extName = url.getMethodParameter(methodName, "loadbalance", "random");
+</code></pre>
+<p>亦或是</p>
+<pre><code class="language-java">String extName = url.getParameter("client", url.getParameter("transporter", "netty"));
+</code></pre>
+<h2>四、总结</h2>
+<p>上面用了较长的篇幅分析了生成扩展代理类的代码，其实只要知道两方面阅读起来很简单。 Dubbo 的自适应扩展为了做什么：<strong>在运行时动态调用扩展方法</strong>。以及怎么做的：<strong>生成扩展代理类</strong>。代理类中根据 URL 获取扩展名，使用 SPI 加载扩展类，并调用同名方法，返回执行结果。</p>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2019/12/20/1576840669968.html</guid>
+      <category>dubbo</category>
+      <pubDate>Tue, 14 Jul 2020 16:40:04 +0800</pubDate>
+    </item>
+    <item>
+      <title>分布式事务之补偿事务（ TCC ）</title>
+      <link>https://aysaml.github.io/articles/2020/06/16/1592304957424.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20180613.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h3>一、TCC 是什么</h3>
+<p>TCC 全称 Try Confirm Cancle 。从字面意思可以理解，TCC 为了实现分布式事务解决了 XA 协议的三个问题：1.协调者单点故障；2.同步阻塞；3.数据一致性。</p>
+<p><img src="https://b3logfile.com/file/2020/06/image-6d33f97d.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>TCC 的主要思想是针对每个操作，都要注册一个与其对应的确认和补偿（撤销）操作。</p>
+<ul>
+<li>
+<p>Try 阶段：尝试执行，完成所有业务检查（一致性），留必须业务资源（准隔离性）。</p>
+</li>
+<li>
+<p>Confirm 阶段：确认执行，真正执行业务，不作任何业务检查，只使用Try阶段预留的业务资源，Confirm 操作满足幂等性。要求具备幂等设计，Confirm 失败后需要进行重试。</p>
+</li>
+<li>
+<p>Cancel 阶段：取消执行，释放 Try 阶段预留的业务资源 ，Cancel操作满足幂等性。Cancel 阶段的异常和 Confirm 阶段异常处理方案基本上一致。</p>
+</li>
+</ul>
+<h3>二、Java 中使用 TCC</h3>
+<p>常用的有 ByteTCC、himly、tcc-transaction 等。</p>
+<p>框架按照 demo 来就行了，需要实现的是一个接口的三种状态，比如要修改一个订单的状态为已付款，那么按照 TCC 的思想就要有下面三个方法来实现事务：</p>
+<ul>
+<li>
+<ol>
+<li>Try : 订单状态更新态，将订单状态改为 UPDATE。</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>Confirm：确认订单状态修改，将订单状态改为已付款。</li>
+</ol>
+</li>
+<li>
+<ol start="3">
+<li>Cancle：取消订单状态的修改，一旦发生错误，则使用此方法做数据回滚。</li>
+</ol>
+</li>
+</ul>
+<p>关于 TCC ，更多请参考：<a href="https://www.zhihu.com/question/48627764" target="_blank">《如何理解TCC分布式事务?》</a></p>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2020/06/16/1592304957424.html</guid>
+      <category>分布式事务</category>
+      <pubDate>Tue, 14 Jul 2020 10:53:33 +0800</pubDate>
+    </item>
+    <item>
+      <title>RocketMQ 分布式事务消息</title>
+      <link>https://aysaml.github.io/articles/2020/06/16/1592296926344.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20190925.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h3>一、什么是事务</h3>
+<p>事务是将一次执行过程中所涉及的所有操作纳入到一个不可分割的执行单元，组成事务的所有操作只有在所有操作均能正常执行的情况下才能提交，只要其中任一操作执行失败，都将导致整个事务的回滚。一句话来说，就是保证多个操作要么都做，要么都不做。同时一旦事务提交，则其所做的修改会永久保存到数据库。</p>
+<h3>二、事务的四个特性（ACID）</h3>
+<ul>
+<li>
+<p>A:原子性(Atomicity)<br>
+一个事务(transaction)中的所有操作，要么全部完成，要么全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。</p>
+</li>
+<li>
+<p>C:一致性(Consistency)<br>
+事务的一致性指的是在一个事务执行之前和执行之后数据库都必须处于一致性状态。如果事务成功地完成，那么系统中所有变化将正确地应用，系统处于有效状态。如果在事务中出现错误，那么系统中的所有变化将自动地回滚，系统返回到原始状态。</p>
+</li>
+<li>
+<p>I:隔离性(Isolation)<br>
+指的是在并发环境中，当不同的事务同时操纵相同的数据时，每个事务都有各自的完整数据空间。由并发事务所做的修改必须与任何其他并发事务所做的修改隔离。事务查看数据更新时，数据所处的状态要么是另一事务修改它之前的状态，要么是另一事务修改它之后的状态，事务不会查看到中间状态的数据。</p>
+</li>
+<li>
+<p>D:持久性(Durability)<br>
+指的是只要事务成功结束，它对数据库所做的更新就必须永久保存下来。即使发生系统崩溃，重新启动数据库系统后，数据库还能恢复到事务成功结束时的状态。</p>
+</li>
+</ul>
+<h3>三、InnoDB 事务实现</h3>
+<p>基于衡量事务的四个特性，InnoDB 实现事务实际上就是 4 个特性的实现。</p>
+<ul>
+<li>
+<p>原子性</p>
+<ul>
+<li>在 MySQL 中有很多类型的日志，二进制日志、查询日志、错误日志、慢查询日志等等。除了这些日志，还提供了两种事务日志，redo log 用来保证持久性， undo log 是原子性和隔离性实现的基础。</li>
+<li>数据库每执行一条更新数据的 sql 就会生成一条 undo log，比如 insert 一条数据，就会生出一条 delete 的 undo log。如果事务执行失败或者调用 rollback 就可以根据 undo log 做数据回滚。</li>
+</ul>
+</li>
+<li>
+<p>隔离性</p>
+<ul>
+<li>隔离性是指，事务内部的操作与其他事务是隔离的，并发执行的各个事务之间不能互相干扰。严格的隔离性，对应了事务隔离级别中的Serializable (可串行化)，但实际应用中出于性能方面的考虑很少会使用可串行化。</li>
+<li>InnoDB 采用可重复读隔离级别，使用 MVCC  和行锁、间隙锁实现隔离性。</li>
+</ul>
+</li>
+<li>
+<p>持久性</p>
+<ul>
+<li>
+<p>InnoDB作为MySQL的存储引擎，数据是存放在磁盘中的，但如果每次读写数据都需要磁盘IO，效率会很低。为此，InnoDB提供了缓存(Buffer Pool)，Buffer Pool中包含了磁盘中部分数据页的映射，作为访问数据库的缓冲：当从数据库读取数据时，会首先从Buffer Pool中读取，如果Buffer Pool中没有，则从磁盘读取后放入Buffer Pool；当向数据库写入数据时，会首先写入Buffer Pool，Buffer Pool中修改的数据会定期刷新到磁盘中（这一过程称为刷脏）。</p>
+</li>
+<li>
+<p>Buffer Pool的使用大大提高了读写数据的效率，但是也带了新的问题：如果MySQL宕机，而此时Buffer Pool中修改的数据还没有刷新到磁盘，就会导致数据的丢失，事务的持久性无法保证。</p>
+</li>
+<li>
+<p>于是，redo log被引入来解决这个问题：当数据修改时，除了修改Buffer Pool中的数据，还会在redo log记录这次操作；当事务提交时，会调用fsync接口对redo log进行刷盘。如果MySQL宕机，重启时可以读取redo log中的数据，对数据库进行恢复。redo log采用的是WAL（Write-ahead logging，预写式日志），所有修改先写入日志，再更新到Buffer Pool，保证了数据不会因MySQL宕机而丢失，从而满足了持久性要求。</p>
+</li>
+</ul>
+<blockquote>
+<p>既然redo log也需要在事务提交时将日志写入磁盘，为什么它比直接将Buffer Pool中修改的数据写入磁盘(即刷脏)要快呢？主要有以下两方面的原因：<br>
+（1）刷脏是随机IO，因为每次修改的数据位置随机，但写redo log是追加操作，属于顺序IO。<br>
+（2）刷脏是以数据页（Page）为单位的，MySQL默认页大小是16KB，一个Page上一个小修改都要整页写入；而redo log中只包含真正需要写入的部分，无效IO大大减少。</p>
+</blockquote>
+</li>
+<li>
+<p>一致性</p>
+<ul>
+<li>一致性是指事务执行结束后，<strong>数据库的完整性约束没有被破坏，事务执行的前后都是合法的数据状态。</strong></li>
+<li>一致性不仅由数据库本身来保证，同时业务系统也保证数据的一致性。</li>
+</ul>
+</li>
+</ul>
+<h3>四、分布式事务的由来</h3>
+<p>现代软件架构随着业务领域划分为多个微服务，共同组成了复杂的软件系统。而从数据库层面来看，随着数据量的爆发，不得不采用分库分表的方式，降低数据库的压力。这样，就造成多个服务依赖不同的数据库，那么在同时操作的时候，如何保证事务？这就是分布式事务。</p>
+<p>简而言之，分布式事务就是一个大的事务由不同的子事务组成，这些小的事务操作分布在不同的服务器节点上面，属于不同的微服务，分布式事务需要保证同一事务下的子事务要么全部成功，要么全部失败，即保证数据的最终一致性。</p>
+<h3>五、分布式事务解决方案</h3>
+<p>在这篇不想用太大的篇幅说一些概念上的东西，但是要说 RocketMQ 的分布式事务实现，所以在这里顺便提一下当前分布式事务的集中解决方案：</p>
+<ul>
+<li>
+<h4>两阶段提交（2PC）</h4>
+<p><strong>两阶段提交（2PC）</strong> 是 Oracle Tuxedo 系统提出的 XA 分布式事务协议的其中一种实现方式，参考 <a href="https://aysaml.com/articles/2020/06/16/1592303735898.html">《分布式事务之两阶段提交（2PC）》</a> 。</p>
+</li>
+<li>
+<h4>Try-Confirm-Cancle （TCC）</h4>
+<p><strong>TCC</strong> 是基于尝试、确认、取消来实现分布式事务的，想了解更多，参考 <a href="https://aysaml.com/articles/2020/06/16/1592304957424.html">《分布式事务之补偿事务（ TCC ）》</a> 。</p>
+</li>
+<li>
+<h4>本地消息表</h4>
+<p><strong>本地消息表</strong> 方案最初是ebay提出的，核心是将需要分布式处理的任务通过消息日志的方式来异步执行。消息日志可以存储到本地文本、数据库或消息队列，再通过业务规则自动或人工发起重试。人工重试更多的是应用于支付场景，通过对账系统对事后问题的处理。</p>
+</li>
+</ul>
+<p><img src="https://b3logfile.com/file/2020/06/image-dd3fdcd1.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>除了上述外，还有一些解决方案，比如阿里 SEATA ，SAGA方案和最大努力通知...感兴趣同学们可以自行了解,当然还有我们这篇要说的 MQ 事务。</p>
+<h3>六、MQ 事务</h3>
+<p>RocketMQ 是阿里开源的一款高性能、高吞吐量的分布式消息中间件，基于消息异步方式提供了对分布式事务的支持，实现事务最终一致性。</p>
+<p>下面是 RocketMQ 事务消息的基本流程交互图：</p>
+<p><img src="https://b3logfile.com/file/2020/06/image-1d49ed23.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>如图其中分为两个流程：正常事务消息的发送及提交、事务消息的补偿流程。</p>
+<p>1.事务消息发送及提交：</p>
+<p>(1) 发送 half 消息。<br>
+(2) 服务端响应消息写入结果。<br>
+(3) 根据发送结果执行本地事务（如果写入失败，此时half消息对业务不可见，本地逻辑不执行）。<br>
+(4) 根据本地事务状态执行 Commit 或者 Rollback（ Commit 操作生成消息索引，消息对消费者可见）</p>
+<p>流程图如下：</p>
+<p><img src="https://b3logfile.com/file/2020/06/image-4853a3bc.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>2.补偿流程：</p>
+<p>(1) 对没有 Commit/Rollback 的事务消息（ pending 状态的消息），从服务端发起一次“回查”<br>
+(2) Producer收到回查消息，检查回查消息对应的本地事务的状态<br>
+(3) 根据本地事务状态，重新Commit或者Rollback</p>
+<p>其中，补偿阶段使用定时器回查方式用于解决消息 Commit 或者 Rollback 发生超时或者失败的情况。</p>
+<h3>七、RocektMQ 事务消息的使用</h3>
+<p>如上，小伙伴们应该对 RocketMQ 的事务消息有了一定的了解，下面看下如何在开发场景下如何使用。</p>
+<p>发送事务消息时和普通的消息区别是，自己要新建一个 <code>TransactionMQProducer</code> 和对应的一个 <code>TransactionListener</code>的实现。</p>
+<ul>
+<li>TransactionMQProducer<br>
+具体的配置有 group、 nameServer 地址、执行本地事务的线程池和事务监听器的实现。</li>
+</ul>
+<pre><code class="language-java">    this.producer = new TransactionMQProducer(config.getGroup());
+    this.producer.setNamesrvAddr(config.getNameServer());
+    this.producer.setExecutorService(config.getExecutorService());
+    this.producer.setTransactionListener(config.getTransactionListener());
+</code></pre>
+<ul>
+<li>TransactionListener<br>
+实现 <code>TransactionListener</code> 接口的两个方法：
+<ul>
+<li><code>executeLocalTransaction(Message message, Object o)</code><br>
+用于执行本地事务的方法。</li>
+<li><code>checkLocalTransaction(MessageExt messageExt)</code><br>
+RocketMQ 回查本地事务状态调用的方法。</li>
+</ul>
+</li>
+</ul>
+<p>代码详见 ]]>👀<![CDATA[ : <a href="https://github.com/wangning1018/rocketmq-transaction-message-demo" target="_blank">https://github.com/wangning1018/rocketmq-transaction-message-demo</a></p>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2020/06/16/1592296926344.html</guid>
+      <category>分布式事务</category>
+      <pubDate>Wed, 08 Jul 2020 15:18:30 +0800</pubDate>
+    </item>
+    <item>
+      <title>分布式事务之两阶段提交（2PC）</title>
+      <link>https://aysaml.github.io/articles/2020/06/16/1592303735898.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20200423.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<p><strong>两阶段提交（2PC）</strong> 是 Oracle Tuxedo 系统提出的 XA 分布式事务协议的其中一种实现方式。</p>
+<h3>一、关于 XA 分布式事务协议</h3>
+<p>XA 分布式协议主要有两个角色：</p>
+<ul>
+<li>事务管理器（协调者）<br>
+事务管理器作为全局事务的协调管理者，与每个资源管理器通信，完成分布式事务的管理。</li>
+<li>资源管理器 （参与者）<br>
+资源管理器管理每个参与者的事务资源，其应该具有提交和回滚的能力，如数据库。</li>
+</ul>
+<p>XA 分布式协议制定的分段提交过程：</p>
+<ul>
+<li>第一阶段（ prepare ）<br>
+第一阶段每个参与者准备执行事务并对需要的资源加锁，进入 ready 状态，并通知协调者已经准备就绪。</li>
+<li>第二阶段（ commit ）<br>
+第二阶段当协调者确认每个参与者都 ready 后，通知参与者进行 commit 操作；如果有参与者 fail ，则发送 rollback 命令，各参与者做回滚。</li>
+</ul>
+<h3>二、两阶段提交（ 2PC ）</h3>
+<p>基于 XA 协议，有了两阶段提交的实现，在 JAVA 中可以使用基于两阶段提交的 <a href="https://www.atomikos.com/" target="_blank">atomikos</a> 来进行分布式事务管理。</p>
+<p>理解起来其实很简单，下面就从 2PC 的不同阶段和不同的状态来分析它的执行过程：</p>
+<h4>第一阶段</h4>
+<ul>
+<li>
+<p>各参与者都成功的情况<br>
+<img src="https://b3logfile.com/file/2020/06/image-d12a350e.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<blockquote>
+<ol>
+<li>首先事务协调者向所有参与者发送 prepare 请求。</li>
+<li>参与者开始执行各自的数据更新，写入各自的 Undo Log 和 Redo Log。</li>
+<li>参与者执行成功后，暂时不提交事务，向协调者发送 Done 消息。</li>
+<li>进入第二阶段。</li>
+</ol>
+</blockquote>
+</li>
+<li>
+<p>有参与者失败的情况<br>
+<img src="https://b3logfile.com/file/2020/06/image-0b51cf4c.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<blockquote>
+<p>在第一阶段，如果参与者在本地事务中执行失败，会向协调者发送 Fail 消息，协调者产生事务中断。</p>
+</blockquote>
+</li>
+<li>
+<p>事务中断</p>
+</li>
+</ul>
+<p>任何一个参与者向协调者反馈了 Fail 消息，或者在等待超时之后，协调者不能接收到参与者的反馈响应，就会中断事务。</p>
+<p>步骤如下：</p>
+<blockquote>
+<ol>
+<li>协调者向所有参与者发出 Rollback 请求。</li>
+<li>参与者收到 Rollback 请求之后，会利用其在阶段一种记录的 Undo 信息来执行事务回滚操作，并在完成回滚之后释放在整个事物执行期间占用的资源。</li>
+<li>参与者在完成事物回滚之后，向协调者发送 Ack 消息。</li>
+<li>中断事务</li>
+</ol>
+</blockquote>
+<h4>第二阶段</h4>
+<p><img src="https://b3logfile.com/file/2020/06/image-9ad0bce7.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>第二阶段中，如果所有参与者的都执行成功，则协调者下发 Commit 消息，参与者提交本地事务，释放锁住的资源，并向协调者发送 Ack 确认。</p>
+<p>当协调者受到所有的参与者确认消息后，整个分布式事务结束。</p>
+<h3>三、总结</h3>
+<p>基于以上，可以很容易理解 2PC 的执行过程，同时我们也注意到它存在的缺点：</p>
+<blockquote>
+<ol>
+<li>对高并发不友好。<br>
+在分布式事务的执行过程中，存在多次通信，占用时间长，并且在这个过程中所有节点处于阻塞状态，每个参与者持有的资源始终要加锁。</li>
+<li>单点故障。由上面可知协调者扮演着非常重要的角色，一旦协调者发生故障，参与者就会一直阻塞下去。尤其在第二阶段，协调者发生故障，那么所有的参与者还都处于锁定事务资源的状态中，而无法继续完成事务操作。</li>
+<li>数据不一致。在第二阶段中，当协调者向参与者发送 commit 请求之后，发生了局部网络异常或者在发送 commit 请求过程中协调者发生了故障，就会导致只有一部分参与者接受到了commit 请求。而在这部分参与者接到 commit 请求之后就会执行 commit 操作，但是其他未接到 commit 请求的机器则无法执行事务提交，就导致了数据的不一致。</li>
+</ol>
+</blockquote>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2020/06/16/1592303735898.html</guid>
+      <category>分布式事务</category>
+      <pubDate>Wed, 17 Jun 2020 19:07:38 +0800</pubDate>
+    </item>
+    <item>
+      <title>微服务架构下缓存的统一管理</title>
+      <link>https://aysaml.github.io/articles/2020/05/11/1589170001785.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20190203.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h3>一、痛点</h3>
+<p>多模块服务协作开发背景下，随着缓存越来越多，缓存的一致性维护难度随之提升。</p>
+<ul>
+<li>
+<p>多模块服务之间的缓存 key 维护容易造成遗漏，如 OP 与各服务之间的缓存交互。</p>
+</li>
+<li>
+<p>单独模块多人开发甚至独立开发时，随着业务缓存的数量增多，在缓存的处理上也会有遗漏。</p>
+<hr>
+<p><em>结论</em>：<br>
+<em>人工维护极易遗漏，沟通时也会出现理解偏差，造成缓存不一致，后期排查定位问题难度增加。其中的种种，带来很多的时间成本、沟通成本和开发成本。</em></p>
+</li>
+</ul>
+<h3>二、思考</h3>
+<p>难点其实在于 <strong>数据查询方</strong> 与 <strong>数据更新方</strong> 的沟通问题，思考：</p>
+<ul>
+<li>数据查询方<br>
+查询数据时，我加了缓存之后需要告诉哪些服务我缓存了这些数据？什么时候需要刷新缓存？数据有变动，有什么机制通知到我更新缓存，或者帮我做刷新？</li>
+<li>数据更新方<br>
+数据更新时，那些缓存与之相关需要更新？什么情况下需要更新？</li>
+</ul>
+<hr>
+<p><em>结论</em>：<br>
+<em>加缓存时通知加了 <strong>什么表</strong> 的缓存，<strong>什么时候</strong> 需要刷新缓存；</em><br>
+<em>数据表更新时按照缓存的 <strong>刷新时机</strong> 刷新。</em></p>
+<h3>三、解决方案</h3>
+<p>首先讨论缓存的更新机制都有哪些：</p>
+<ul>
+<li>单条更新时(id，userId 等特定标识，适用单条缓存）</li>
+<li>单表有数据更新时（表全量数据缓存或难以通过特定标示定位到的）</li>
+<li>多表有数据更新时（缓存的数据与业务多表强相关，一张表有更新就要更新缓存）<br>
+...</li>
+</ul>
+<hr>
+<p>解决思路：</p>
+<h4>1、加缓存，规则统一无需通知</h4>
+<blockquote>
+<p>按更新机制配置 Hash name , 命名方式为 表名 + 更新机制，下属 key 的命名可以按照模块前缀 + 自定义方式。</p>
+</blockquote>
+<h4>2、更新缓存，端 + Syncer 管理。</h4>
+<blockquote>
+<p>缓存的刷新由服务本身管理 + Syncer 统一管理的方式。服务可以自主更新缓存，并发送更新消息至 Syncer , 解析消息后刷新缓存。</p>
+</blockquote>
+<p>消息格式：</p>
+<p><strong>表 + 更新机制</strong> 即上述的 Hash name，对应的更新机制消息：</p>
+<ul>
+<li>单条更新，带上 id；</li>
+<li>单表更新, 多表更新
+<ul>
+<li>能准确定位 id ，带上各表 id</li>
+<li>其他</li>
+</ul>
+</li>
+</ul>
+<p>交互图：</p>
+<p><img src="https://img.hacpai.com/file/2020/05/image20200511114243776-452c3260.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image20200511114243776.png"></p>
+<h4>3、通知方式</h4>
+<ul>
+<li>各服务自己控制缓存更新时发送消息，注解 AOP</li>
+<li>Mybatis 拦截器</li>
+<li>binglog<br>
+...</li>
+</ul>
+<hr>
+<h4>四、应用到生产环境的解决方案</h4>
+<ul>
+<li>使用发 MQ  的方式解决，每个表为特定的 topic ，对数据有修改则发消息，消息内容为 <code>{"source":"app1","id":1...}</code> ，其中 source 是标示发消息的应用，再带上关注的索引，一般 key 都是以重要的索引来作区分，比如 id ，userId...</li>
+<li>应用订阅关心的 topic ，自己消费做缓存同步处理。</li>
+</ul>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2020/05/11/1589170001785.html</guid>
+      <category>缓存</category>
+      <pubDate>Sat, 06 Jun 2020 14:36:42 +0800</pubDate>
+    </item>
+    <item>
+      <title>如何解决代码中过多的 if else ?</title>
+      <link>https://aysaml.github.io/articles/2020/05/08/1588928166693.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20190302.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<hr>
+<p>先来一张镇楼图感受一下 if else 的魔法吧。</p>
+<p><img src="https://img.hacpai.com/file/2020/05/image-4409ef27.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h3>一、由一个几百行 if 引发的思考</h3>
+<p>有个场景，50张字典表，需要为其他服务提供一个统一的接口来校验用户输入的字典表 id 是否合法。</p>
+<p>校验逻辑已经很清晰了，根据参数选择对应的表校验 id 是否存在。</p>
+<pre><code class="language-java">    if("table_a".equals(table)) {
+      // check id
+    }
+    if("table_b".equals(table)) {
+      // check id
+    }
+    if("table_c".equals(table)) {
+      // check id
+    }...
+</code></pre>
+<p>再加上参数校验，函数调用，@Autowired bean 等等，一坨几百行的代码 ok 了。再新加表再加 if else 就行了，]]>😋<![CDATA[ 完美。</p>
+<p>如此，N 年后另一个可怜的小伙伴就看到这坨东西。</p>
+<h3>二、KO 这些 if else</h3>
+<p>回想上面的场景，实际上就是要根据表名去确定 id 是否存在表中，那么只要将表名与操作对应起来就行了。故而采用哈希表的形式，将表名与操作对应起来。部分代码如下：</p>
+<pre><code class="language-java"> // 用于保存表与 Function 的对应关系 
+ private final Map&lt;String, Function&lt;Object, Object&gt;&gt; actionMappings = new ConcurrentHashMap&lt;&gt;(50);
+
+ @PostConstruct
+ private void init() {
+	// map 初始化
+	actionMappings.put(TableConstants.TABLE_A, (params) -&gt; tableAManager.getById(params));
+  }
+
+/**
+ * 校验逻辑
+ *
+ *@param table
+ *@param id
+ */
+ public boolean valid(String table, Long id) {
+	Object object = actionMappings.get(table).apply(id);
+	// 不存在则校验失败
+	return !Objects.isNull(object);
+ }
+</code></pre>
+<p>如此，N 多行 if 被消除了，这种编程方式也叫做表驱动。虽然 if 没有了，但是在初始化 actionMappings 的时候还是很多行重复代码。下面采用注解方式解决：</p>
+<pre><code class="language-java">/**
+ * 标记此注解的 bean 会加入基础数据校验全局 Function Map
+ *
+ * @author aysaml
+ * @date 2020/5/7
+ */
+@Documented
+@Inherited
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ValidHandler {
+
+  TABLE_ENUM value();
+}
+
+</code></pre>
+<p>value 是表名枚举，在需要的类上面加上此注解即可。同时定义一个 context 用来专门存储 actionMappings 。</p>
+<pre><code class="language-java">/**
+ * 数据校验上下文对象，用于保存各表的 Function Map
+ *
+ * @author aysaml
+ * @date 2020/5/7
+ */
+@Component
+public class CommonDataValidContext {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(CommonDataValidContext.class);
+
+  private final Map&lt;String, Function&lt;Object, Object&gt;&gt; actionMappings = new ConcurrentHashMap&lt;&gt;(50);
+
+  /**
+   * 方法加入 mappings
+   *
+   * @param model 表名
+   * @param action 方法
+   */
+  public void putAction(String model, Function&lt;Object, Object&gt; action) {
+    if (!Objects.isNull(action)) {
+      actionMappings.put(model, action);
+      LOGGER.info(
+          "[{}] add to CommonDataValidContext actionMappings, actionMappings size : {}",
+          model,
+          actionMappings.size());
+    }
+  }
+
+  /**
+   * 执行方法获取返回结果
+   *
+   * @param model
+   * @param param
+   * @return
+   */
+  public &lt;P, R&gt; R apply(String model, P param) {
+    if (actionMappings.containsKey(model)) {
+      return (R) actionMappings.get(model).apply(param);
+    } else {
+      LOGGER.error("执行数据校验时model={}不存在！", model);
+      throw new RuntimeException("基础数据校验时发生错误：" + model + "表不存在！");
+    }
+  }
+
+  /**
+   * 判断 mappings 中是否含有给定 model 的处理方法
+   *
+   * @param model
+   * @return
+   */
+  public boolean containsKey(String model) {
+    return actionMappings.containsKey(model);
+  }
+
+  /**
+   * 校验执行方法的返回值是否为空
+   *
+   * @param model
+   * @param param
+   * @param &lt;P&gt;
+   * @return
+   */
+  public &lt;P&gt; boolean validResultIsNull(String model, P param) {
+    return Objects.isNull(this.apply(model, param));
+  }
+}
+
+</code></pre>
+<p>然后通过监听器的方式，将含有 ValidHandler 注解的方法加入 actionMappings 。</p>
+<pre><code class="language-java">/**
+ * 基础数据校验处理方法监听器
+ *
+ * @author aysaml
+ * @date 2020/5/7
+ */
+@Component
+public class CommonValidActionListener implements ApplicationListener&lt;ContextRefreshedEvent&gt; {
+
+  @Override
+  public void onApplicationEvent(ContextRefreshedEvent event) {
+    Map&lt;String, Object&gt; beans =
+        event.getApplicationContext().getBeansWithAnnotation(ValidHandler.class);
+    CommonDataValidContext commonDataValidContext =
+        event.getApplicationContext().getBean(CommonDataValidContext.class);
+    beans.forEach(
+        (name, bean) -&gt; {
+          ValidHandler validHandler = bean.getClass().getAnnotation(ValidHandler.class);
+          commonDataValidContext.putAction(
+              validHandler.value().code(),
+              (param) -&gt; {
+                try {
+                  return bean.getClass().getMethod("getById", Long.class).invoke(bean, param);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+                return null;
+              });
+        });
+  }
+}
+</code></pre>
+<h3>三、更多消除 if else 的方法。</h3>
+<h4>1. 提前return</h4>
+<p>这样可以使代码在逻辑表达上会更清晰，如下：</p>
+<pre><code class="language-java">if (condition) {
+ // do something
+} else {
+  return xxx;
+}
+</code></pre>
+<p>按照逆向思维来，优化如下：</p>
+<pre><code class="language-java">if (!condition) {
+  return xxx;
+} 
+// do something
+</code></pre>
+<p>还有一种常见的傻瓜编程（如有冒犯，敬请见谅，对码不对人]]>🙏<![CDATA[ ）：</p>
+<pre><code class="language-java">    if(a &gt; 0) {
+      return true;
+    } else {
+      return false;
+    }
+</code></pre>
+<p>话不多说了，直接 <code>return a &gt; 0;</code> 不香吗？</p>
+<h3>2. 策略模式</h3>
+<p>简单来说就是根据不同的参数执行不同的业务逻辑。<br>
+如下：</p>
+<pre><code class="language-java">if (status == 0) {
+  // 业务逻辑处理 0
+} else if (status == 1) {
+  // 业务逻辑处理 1
+} else if (status == 2) {
+  // 业务逻辑处理 2
+} else if (status == 3) {
+  // 业务逻辑处理 3
+}...
+</code></pre>
+<p>优化如下：</p>
+<ul>
+<li>多态</li>
+</ul>
+<pre><code class="language-java">interface A {
+  void run() throws Exception;
+}
+
+class A0 implements A {
+    @Override
+    void run() throws Exception {
+        // 业务逻辑处理 0
+    }
+}
+
+class A1 implements A {
+    @Override
+    void run() throws Exception {
+        // 业务逻辑处理 1
+    }
+}
+// ...
+</code></pre>
+<p>然后策略对象存放在一个 Map 中，如下：</p>
+<pre><code class="language-java">A a = map.get(param);
+a.run();
+</code></pre>
+<h3>2.2 枚举</h3>
+<pre><code class="language-java">public enum Status {
+    NEW(0) {
+      @Override
+      void run() {
+        //do something  
+      }
+    },
+    RUNNABLE(1) {
+      @Override
+       void run() {
+         //do something  
+      }
+    };
+
+    public int statusCode;
+
+    abstract void run();
+
+    Status(int statusCode){
+        this.statusCode = statusCode;
+    }
+}
+</code></pre>
+<p>重新定义策略枚举</p>
+<pre><code class="language-java">public enum Aenum {
+    A_0 {
+      @Override
+      void run() {
+        //do something  
+      }
+    },
+    A_1 {
+      @Override
+       void run() {
+         //do something  
+      }
+    };
+    //...
+    abstract void run();
+}
+</code></pre>
+<p>通过枚举优化之后的代码如下</p>
+<pre><code class="language-java">Aenum a = Aenum.valueOf(param);
+a.run();
+</code></pre>
+<h3>3. Java 8 的 Optional</h3>
+<p>Optional主要用于非空判断，是 Java 8 提供的新特性。</p>
+<p>使用之前：</p>
+<pre><code class="language-java">if (user == null) {
+    //do action 1
+} else {
+    //do action2
+}
+</code></pre>
+<p>如果登录用户为空，执行action1，否则执行action 2，使用Optional优化之后，让非空校验更加优雅，间接的减少if操作</p>
+<pre><code class="language-java">Optional&lt;User&gt; userOptional = Optional.ofNullable(user);
+userOptional.map(action1).orElse(action2);
+</code></pre>
+<h3>4. 决策表</h3>
+<p>就是上面的表驱动编程方法。</p>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2020/05/08/1588928166693.html</guid>
+      <category>java</category>
+      <pubDate>Fri, 08 May 2020 18:31:00 +0800</pubDate>
+    </item>
+    <item>
+      <title>一文理解二叉树的遍历</title>
+      <link>https://aysaml.github.io/articles/2020/04/29/1588154150735.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20180309.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h3>一、什么是二叉树</h3>
+<p>二叉树顾名思义，即每个节点最多有两个子树的树形数据结构。如下图的二叉树中，3 为二叉树的根节点，9 为元素 3 的左节点，20 为元素 3 的右节点。由其形态的特点还可以细分为满二叉树、平衡二叉树等等等等，这里不做过多描述。</p>
+<h3>二、二叉树的遍历</h3>
+<p>大体分为广度优先遍历和深度优先遍历。深度优先又分为前、中、后序遍历。</p>
+<p><img src="https://img.hacpai.com/file/2020/04/image-36ef59b1.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h3>三、遍历方式算法</h3>
+<ul>
+<li>二叉树数据结构</li>
+</ul>
+<pre><code class="language-java">public class TreeNode {
+      int val;
+      TreeNode left;
+      TreeNode right;
+      TreeNode(int x) { val = x; }
+  }
+</code></pre>
+<h4>1、前序遍历</h4>
+<ul>
+<li>递归算法<br>
+先输出节点的值，再改变节点的值为左右子树。</li>
+</ul>
+<pre><code class="language-java">public static void preorderTraversal(TreeNode root) {
+    if (null != root) {
+      System.out.println(root.val);
+      preorderTraversal(root.left);
+      preorderTraversal(root.right);
+    }
+  }
+</code></pre>
+<ul>
+<li>非递归算法<br>
+同样先输出节点的值，然后遍历其左子树，但是这个过程中为了回溯到各节点遍历其右子树，考虑用栈做存储。</li>
+</ul>
+<pre><code class="language-java"> public static void preorderTraversal(TreeNode root) {
+    // 存放当前节点
+    TreeNode node = root;
+    // 顺序存放二叉树的每个节点
+    Stack&lt;TreeNode&gt; stack = new Stack&lt;&gt;();
+    // 什么时候结束循环？
+    // 到了最后一个节点时结束，即节点的左右子树都为空并且栈中也没有其他节点了
+    while (null != node || !stack.isEmpty()) {
+      // 若左子节点为空，则结束本次遍历
+      while (null != node) {
+        // 首先输出节点的值
+        System.out.println(node.val);
+        // 顺序入栈
+        stack.push(node);
+        // 遍历左子节点
+        node = node.left;
+      }
+      if (!stack.isEmpty()) {
+        // 顺序出栈
+        node = stack.pop();
+        // 指向右子节点
+        node = node.right;
+      }
+    }
+  }
+</code></pre>
+<h4>2、中序遍历</h4>
+<p>类比前序遍历很容易可以得到中序遍历的算法。</p>
+<ul>
+<li>递归算法</li>
+</ul>
+<pre><code class="language-java">public static void recursionMiddleorderTraversal(TreeNode root) {
+    if (null != root) {
+        recursionMiddleorderTraversal(root.left);
+        System.out.print(root.val);
+        recursionMiddleorderTraversal(root.right);
+    }
+}
+</code></pre>
+<ul>
+<li>非递归算法</li>
+</ul>
+<pre><code class="language-java">public static void middleorderTraversal(TreeNode root) {
+    Stack&lt;TreeNode&gt; treeNodeStack = new Stack&lt;TreeNode&gt;();
+    TreeNode node = root;
+    while (null != node || !treeNodeStack.isEmpty()) {
+      while (null != node) {
+        treeNodeStack.push(node);
+        node = node.left;
+      }
+      if (!treeNodeStack.isEmpty()) {
+        node = treeNodeStack.pop();
+        // 本轮循环中因为栈存的是左子树，所以先输出左子树
+        System.out.print(node.val + " ");
+        node = node.right;
+      }
+    }
+  }
+</code></pre>
+<h4>3、后序遍历</h4>
+<ul>
+<li>递归算法</li>
+</ul>
+<pre><code class="language-java">public static void recursionPostorderTraversal(TreeNode root) {
+    if (null != root) {
+        recursionPostorderTraversal(root.left);
+        recursionPostorderTraversal(root.right);
+        System.out.print(root.val);
+    }
+}
+</code></pre>
+<ul>
+<li>非递归算法</li>
+</ul>
+<pre><code class="language-java">public static void postorderTraversal(TreeNode root) {
+    Stack&lt;TreeNode&gt; treeNodeStack = new Stack&lt;TreeNode&gt;();
+    TreeNode node = root;
+    TreeNode lastVisit = root;
+    while (node != null || !treeNodeStack.isEmpty()) {
+        while (node != null) {
+            treeNodeStack.push(node);
+            node = node.left;
+        }
+        //查看当前栈顶元素
+        node = treeNodeStack.peek();
+        //如果其右子树也为空，或者右子树已经访问
+        //则可以直接输出当前节点的值
+        if (node.right == null || node.right == lastVisit) {
+            System.out.print(node.val + " ");
+            treeNodeStack.pop();
+            lastVisit = node;
+            node = null;
+        } else {
+            //否则，继续遍历右子树
+            node = node.right;
+        }
+    }
+}
+</code></pre>
+<h4>4、广度优先遍历</h4>
+<ul>
+<li>
+<ol>
+<li>定义节点 TreeNode lastNode指向当前行最右节点，TreeNode nlastNode指向下一行最右节点。</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>利用队列，首先将根节点入队,再循环里出队,并将其子节点入队,定义TreeNode tmpNode节点指向当前出队列的节点，当tmpNode==lastNode时，代表当前行遍历结束，输出换行，再令lastNode=nlastNode，nlastNode在子节点入队列时指向下一行最右节点。循环直到对列为空就行。</li>
+</ol>
+</li>
+</ul>
+<pre><code class="language-java">public static int[][] breadthFirstSearch(TreeNode root) {
+    List&lt;List&lt;Integer&gt;&gt; list = new ArrayList&lt;List&lt;Integer&gt;&gt;();
+    list.add(new ArrayList&lt;Integer&gt;());
+    Queue&lt;TreeNode&gt; queue = new LinkedList&lt;TreeNode&gt;();
+    queue.add(root);
+    // 当前行最右节点
+    TreeNode lastNode = root;
+    // 下一行最右节点
+    TreeNode nLastNode = root;
+    TreeNode tmpNode = null;
+    // 树的高度
+    int height = 0;
+    while (!queue.isEmpty()) {
+      tmpNode = queue.poll();
+      if (null != tmpNode) {
+        list.get(height).add(tmpNode.val);
+      }
+      if (null != tmpNode.left) {
+        queue.add(tmpNode.left);
+        nLastNode = tmpNode.left;
+      }
+      if (null != tmpNode.right) {
+        queue.add(tmpNode.right);
+        nLastNode = tmpNode.right;
+      }
+      if (tmpNode == lastNode) {
+        lastNode = nLastNode;
+        height++;
+        list.add(new ArrayList&lt;Integer&gt;());
+      }
+    }
+    int[][] data = new int[list.size()][];
+    for (int i = 0; i &lt; list.size(); i++) {
+      for (int j = 0; j &lt; list.get(i).size(); j++) {
+        data[i][j] = list.get(i).get(j);
+      }
+    }
+
+    return data;
+  }
+</code></pre>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/articles/2020/04/29/1588154150735.html</guid>
+      <category>数据结构</category>
+      <pubDate>Wed, 06 May 2020 16:00:51 +0800</pubDate>
+    </item>
+    <item>
+      <title>Java 面试知识总结回顾</title>
+      <link>https://aysaml.github.io/interview.html</link>
+      <description><![CDATA[<p><img src="https://img.hacpai.com/bing/20180921.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h3>一、Java 基础知识</h3>
+<h4>1、Object 类相关方法</h4>
+<ul>
+<li>getClass<br>
+获取当前运行时对象的 Class 对象。</li>
+<li>hashCode<br>
+返回对象的 hash 码。</li>
+<li>clone<br>
+拷贝当前对象， 必须实现 Cloneable 接口。<strong>浅拷贝</strong>对基本类型进行值拷贝，对引用类型拷贝引用；<strong>深拷贝</strong>对基本类型进行值拷贝，对引用类型对象不但拷贝对象的引用还拷贝对象的相关属性和方法。两者不同在于深拷贝创建了一个新的对象。</li>
+<li>equals<br>
+通过内存地址比较两个对象是否相等，String 类重写了这个方法使用值来比较是否相等。</li>
+<li>toString<br>
+返回类名@哈希码的 16 进制。</li>
+<li>notify<br>
+唤醒当前对象监视器的任一个线程。</li>
+<li>notifyAll<br>
+唤醒当前对象监视器上的所有线程。</li>
+<li>wait<br>
+1、暂停线程的执行；2、三个不同参数方法（等待多少毫秒；额外等待多少毫秒；一直等待）3、与 <code>Thread.sleep(long time)</code> 相比，sleep 使当前线程休眠一段时间，并没有释放该对象的锁，wait 释放了锁。</li>
+<li>finalize<br>
+对象被垃圾回收器回收时执行的方法。</li>
+</ul>
+<h4>2、基本数据类型</h4>
+<ul>
+<li>整型：byte(8)、short(16)、int(32)、long(64)</li>
+<li>浮点型：float(32)、double(64)</li>
+<li>布尔型：boolean(8)</li>
+<li>字符型：char(16)</li>
+</ul>
+<h4>3、序列化</h4>
+<p>Java 对象实现序列化要实现 Serializable 接口。</p>
+<ul>
+<li>反序列化并不会调用构造方法。反序列的对象是由 JVM 自己生成的对象，不通过构造方法生成。</li>
+<li>序列化对象的引用类型成员变量，也必须是可序列化的，否则，会报错。</li>
+<li>如果想让某个变量不被序列化，使用 transient 修饰。</li>
+<li>单例类序列化，需要重写 readResolve() 方法。</li>
+</ul>
+<h4>4、String、StringBuffer、StringBuilder</h4>
+<ul>
+<li>String<br>
+由 char[] 数组构成，使用了 final 修饰，是不可变对象，可以理解为常量，线程安全；对 String 进行改变时每次都会新生成一个 String 对象，然后把指针指向新的引用对象。</li>
+<li>StringBuffer 线程安全；StringBuiler 线程不安全。</li>
+<li>操作少量字符数据用 String；单线程操作大量数据用 StringBuilder；多线程操作大量数据用 StringBuffer。</li>
+</ul>
+<h4>5、重载与重写</h4>
+<ul>
+<li>重载<br>
+发生在同一个类中，方法名相同，参数的类型、个数、顺序不同，方法的返回值和修饰符可以不同。</li>
+<li>重写<br>
+发生在父子类中，方法名和参数相同，返回值范围小于等于父类，抛出的异常范围小于等于父类，访问修饰符范围大于等于父类；如果父类方法访问修饰符为 private 或者 final 则子类就不能重写该方法。</li>
+</ul>
+<h4>6、final</h4>
+<ul>
+<li>修饰基本类型变量，一经出初始化后就不能够对其进行修改。</li>
+<li>修饰引用类型变量，不能够指向另一个引用。</li>
+<li>修饰类或方法，不能被继承或重写。</li>
+</ul>
+<h4>7、反射</h4>
+<ul>
+<li>在运行时动态的获取类的完整信息</li>
+<li>增加程序的灵活性</li>
+<li>JDK 动态代理使用了反射</li>
+</ul>
+<h4>8、JDK 动态代理</h4>
+<ul>
+<li>使用步骤
+<ul>
+<li>创建接口及实现类</li>
+<li>实现代理处理器：实现 InvokationHandler ，实现 invoke（Proxy proxy，Method method，Object[] args） 方法</li>
+<li>通过 Proxy.newProxyInstance(ClassLoaderloader, Class[] interfaces, InvocationHandler h) 获得代理类</li>
+<li>通过代理类调用方法。</li>
+</ul>
+</li>
+</ul>
+<h4>9、Java IO</h4>
+<ul>
+<li>普通 IO ，面向流，同步阻塞线程。</li>
+<li>NIO，面向缓冲区，同步非阻塞。</li>
+</ul>
+<h3>二、Java 集合框架</h3>
+<h4>1、List（线性结构）</h4>
+<ul>
+<li>ArrayList<br>
+Object[] 数组实现，默认大小为 10 ，支持随机访问，连续内存空间，插入末尾时间复杂度 o(1)，插入第 i 个位置时间复杂度 o(n - i)。扩容，大小变为 <strong>1.5</strong> 倍，Arrays.copyOf（底层 System.ArrayCopy），复制到新数组，指针指向新数组。</li>
+<li>Vector<br>
+类似 ArrayList，线程安全，扩容默认增长为原来的 <strong>2</strong> 倍，还可以指定增长空间长度。</li>
+<li>LinkedList<br>
+基于链表实现，1.7 为双向链表，1.6 为双向循环链表，取消循环更能分清头尾。</li>
+</ul>
+<h4>2、Map（K，V 对）</h4>
+<ul>
+<li>HashMap
+<ul>
+<li>底层数据结构，JDK 1.8 是<strong>数组 + 链表 + 红黑树</strong>，JDK 1.7 无红黑树。链表长度大于 8 时，转化为红黑树，优化查询效率。</li>
+<li>初始容量为 <strong>16</strong>，通过 tableSizeFor 保证容量为 2 的幂次方。寻址方式，高位异或，<strong>(n-1)&amp;h</strong> 取模，优化速度。</li>
+<li>扩容机制，当元素数量大于容量 x 负载因子 0.75 时，容量扩大为原来的 2 倍，新建一个数组，然后转移到新数组。</li>
+<li>基于 Map 实现。</li>
+<li>线程不安全。</li>
+</ul>
+</li>
+<li>HashMap (1.7) 多线程循环链表问题
+<ul>
+<li>在多线程环境下，进行扩容时，1.7 下的 HashMap 会形成循环链表。</li>
+<li>怎么形成循环链表：<br>
+假设有一 HashMap 容量为 2 ， 在数组下标 1 位置以 A -&gt; B 链表形式存储。有一线程对该 map 做 put 操作，由于触发扩容条件，需要进行扩容。这时另一个线程也 put 操作，同样需要扩容，并完成了扩容操作，由于复制到新数组是头部插入，所以 1 位置变为 B -&gt; A 。这时第一个线程继续做扩容操作，首先复制 A ，然后复制 B ，再判断 B.next 是否为空时，由于第二个线程做了扩容操作，导致 B.next = A，所以在将 A 放到 B 前，A.next 又等于 B ，导致循环链表出现。</li>
+</ul>
+</li>
+<li>HashTable
+<ul>
+<li>线程安全，方法基本全用 Synchronized 修饰。</li>
+<li>初始容量为 11 ，扩容为 2n + 1 。</li>
+<li>继承 <strong>Dictionary</strong> 类。</li>
+</ul>
+</li>
+<li>ConcurrentHashMap
+<ul>
+<li>线程安全的 HashMap。</li>
+<li>1.7 采用分段锁的形式加锁；1.8 使用 Synchronized 和 CAS 实现同步，若数组的 Node 为空，则通过 CAS 的方式设置值，不为空则加在链表的第一个节点。获取第一个元素是否为空使用 Unsafe 类提供的 getObjectVolatile 保证可见性。</li>
+<li>对于读操作，数组由 volatile 修饰，同时数组的元素为 Node，Node 的 K 使用 final 修饰，V 使用 volatile 修饰，下一个节点也用 volatile 修饰，保证多线程的可见性。</li>
+</ul>
+</li>
+<li>LinkedHashMap<br>
+LinkedHashMap 继承自 HashMap，所以它的底层仍然是基于拉链式散列结构即由数组和链表或红黑树组成。另外，LinkedHashMap 在上面结构的基础上，增加了一条双向链表，使得上面的结构可以保持键值对的插入顺序。</li>
+<li>TreeMap<br>
+有序的 Map，红黑树结构，可以自定义比较器来进行排序。</li>
+<li>Collections.synchronizedMap 如何实现 Map 线程安全？<br>
+基于 Synchronized ，实际上就是锁住了当前传入的 Map 对象。</li>
+</ul>
+<h4>3、Set（唯一值）</h4>
+<ul>
+<li>HashSet<br>
+基于 HashMap 实现，使用了 HashMap 的 K 作为元素存储，V 为 new Object() ，在 add() 方法中如果两个元素的 Hash 值相同，则通过 equals 方法比较是否相等。</li>
+<li>LinkedHashSet<br>
+LinkedHashSet 继承于 HashSet，并且其内部是通过 LinkedHashMap 来实现的。</li>
+<li>TreeSet<br>
+红黑树实现有序唯一。</li>
+</ul>
+<h3>三、Java 多线程</h3>
+<h4>1、synchronized</h4>
+<ul>
+<li>修饰代码块<br>
+底层实现，通过 monitorenter &amp; monitorexit 标志代码块为同步代码块。</li>
+<li>修饰方法<br>
+底层实现，通过 ACC_SYNCHRONIZED 标志方法是同步方法。</li>
+<li>修饰类 class 对象时，实际锁在类的实例上面。</li>
+<li>单例模式</li>
+</ul>
+<pre><code class="language-java">public class Singleton {
+
+    private static volatile Singleton instance = null;
+
+    private Singleton(){}
+
+    public static Singleton getInstance(){
+	if (null == instance) {
+		synchronized (Singleton.class) {
+		    if (null == instance) {
+			instance = new Singleton();
+		    }
+		}
+	  }
+		return instance;
+        }
+}
+</code></pre>
+<ul>
+<li>偏向锁，自旋锁，轻量级锁，重量级锁
+<ul>
+<li>通过 synchronized 加锁，第一个线程获取的锁为偏向锁，这时有其他线程参与锁竞争，升级为轻量级锁，其他线程通过循环的方式尝试获得锁，称自旋锁。若果自旋的次数达到一定的阈值，则升级为重量级锁。</li>
+<li>需要注意的是，在第二个线程获取锁时，会先判断第一个线程是否仍然存活，如果不存活，不会升级为轻量级锁。</li>
+</ul>
+</li>
+</ul>
+<h4>2、Lock</h4>
+<ul>
+<li>ReentrantLock
+<ul>
+<li>基于 AQS （AbstractQueuedSynchronizer）实现，主要有 state (资源) + FIFO (线程等待队列) 组成。</li>
+<li>公平锁与非公平锁：区别在于在获取锁时，公平锁会判断当前队列是否有正在等待的线程，如果有则进行排队。</li>
+<li>使用 lock() 和 unLock() 方法来加锁解锁。</li>
+</ul>
+</li>
+<li>ReentrantReadWriteLock
+<ul>
+<li>同样基于 AQS 实现，内部采用内部类的形式实现了读锁（共享锁）和写锁 （排它锁）。</li>
+</ul>
+</li>
+<li>非公平锁吞吐量高<br>
+在获取锁的阶段来分析，当某一线程要获取锁时，非公平锁可以直接尝试获取锁，而不是判断当前队列中是否有线程在等待。一定情况下可以避免线程频繁的上下文切换，这样，活跃的线程有可能获得锁，而在队列中的锁还要进行唤醒才能继续尝试获取锁，而且线程的执行顺序一般来说不影响程序的运行。</li>
+</ul>
+<h4>3、volatile</h4>
+<ul>
+<li>Java 内存模型</li>
+</ul>
+<p><img src="https://img.hacpai.com/file/2020/02/image-13ac2802.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>在多线程环境下，保证变量的可见性。使用了 volatile 修饰变量后，<strong>在变量修改后会立即同步到主存中，每次用这个变量前会从主存刷新。</strong></li>
+<li>禁止 JVM 指令重排序。</li>
+<li>单例模式双重校验锁变量为什么使用 volatile 修饰？<br>
+禁止 JVM 指令重排序，new Object()分为三个步骤：申请内存空间，将内存空间引用赋值给变量，变量初始化。如果不禁止重排序，有可能得到一个未经初始化的变量。</li>
+</ul>
+<h4>4、线程的五种状态</h4>
+<h5>1). New</h5>
+<p>一个新的线程被创建，还没开始运行。</p>
+<h5>2). Runnable</h5>
+<p>一个线程准备就绪，随时可以运行的时候就进入了 Runnable 状态。</p>
+<p>Runnable 状态可以是实际正在运行的线程，也可以是随时可以运行的线程。</p>
+<p>多线程环境下，每个线程都会被分配一个固定长度的 CPU 计算时间，每个线程运行一会儿就会停止让其他线程运行，这样才能让每个线程公平的运行。这些等待 CPU 和正在运行的线程就处于 Runnable 状态。</p>
+<h5>3). Blocked</h5>
+<p>例如一个线程在等待 I/O 资源，或者它要访问的被保护代码已经被其他线程锁住了，那么它就在阻塞 Blocked 状态，这个线程所需的资源到位后就转入 Runnable 状态。</p>
+<h5>4). Waiting（无限期等待）</h5>
+<p>如果一个线程在等待其他线程的唤醒，那么它就处于 Waiting 状态。以下方法会让线程进入等待状态：</p>
+<ul>
+<li>Object.wait()</li>
+<li>Thread.join()</li>
+<li>LockSupport.park()</li>
+</ul>
+<h5>5). Timed Waiting（有期限等待）</h5>
+<p>无需等待被其他线程显示唤醒，在一定时间后有系统自动唤醒。</p>
+<p>以下方法会让线程进入有限等待状态：</p>
+<ul>
+<li>Thread.sleep(sleeptime)</li>
+<li>Object.wait(timeout)</li>
+<li>Thread.join(timeout)</li>
+<li>LockSupport.parkNanos(timeout)</li>
+<li>LockSupport.parkUntil(timeout)</li>
+</ul>
+<h5>6). Terminated</h5>
+<p>一个线程正常执行完毕，或者意外失败，那么就结束了。</p>
+<h4>5、 wait() 与 sleep()</h4>
+<ul>
+<li>调用后线程进入 waiting 状态。</li>
+<li>wait() 释放锁，sleep() 没有释放锁。</li>
+<li>调用 wait() 后需要调用 notify() 或 notifyAll() 方法唤醒线程。</li>
+<li>wait() 方法声明在 Object 中，sleep() 方法声明在 Thread 中。</li>
+</ul>
+<h4>6、 yield()</h4>
+<ul>
+<li>调用后线程进入 runnable 状态。</li>
+<li>让出 CPU 时间片，之后有可能其他线程获得执行权，也有可能这个线程继续执行。</li>
+</ul>
+<h4>7、 join()</h4>
+<ul>
+<li>在线程 B 中调用了线程 A 的 Join()方法，直到线程 A 执行完毕后，才会继续执行线程 B。</li>
+<li>可以保证线程的顺序执行。</li>
+<li>join() 方法必须在 线程启动后调用才有意义。</li>
+<li>使用 wait() 方法实现。</li>
+</ul>
+<h4>9、线程使用方式</h4>
+<ul>
+<li>继承 Tread 类</li>
+<li>实现 Runnable 接口</li>
+<li>实现 Callable 接口：带有返回值</li>
+</ul>
+<h4>10、Runnable 和 Callable 比较</h4>
+<ol>
+<li>方法签名不同， <code>void Runnable.run()</code> , <code>V Callable.call() throws Exception</code></li>
+<li>是否允许有返回值， <code>Callable</code> 允许有返回值</li>
+<li>是否允许抛出异常， <code>Callable</code> 允许抛出异常。</li>
+<li>提交任务方式， <code>Callable</code> 使用 <code>Future&lt;T&gt; submit(Callable&lt;T&gt; task)</code> 返回 Future 对象，调用其 get() 方法可以获得返回值， <code>Runnable</code> 使用 <code>void execute(Runnable command)</code> 。</li>
+</ol>
+<h4>11、hapens-before</h4>
+<p>如果一个操作 happens-before 另一个操作，那么第一个操作的执行结果将对第二个操作可见，而且第一个操作的执行顺序排在第二个操作之前。</p>
+<h4>12、ThreadLocal</h4>
+<ul>
+<li>场景<br>
+主要用途是为了保持线程自身对象和避免参数传递，主要适用场景是按线程多实例（每个线程对应一个实例）的对象的访问，并且这个对象很多地方都要用到。</li>
+<li>原理<br>
+为每个线程创建变量副本，不同线程之间不可见，保证线程安全。使用 ThreadLocalMap 存储变量副本，以 ThreadLocal 为 K，这样一个线程可以拥有多个 ThreadLocal 对象。</li>
+<li>实际<br>
+使用多数据源时，需要根据数据源的名字切换数据源，假设一个线程设置了一个数据源，这个时候就有可能有另一个线程去修改数据源，可以使用 ThreadLocal 维护这个数据源名字，使每个线程持有数据源名字的副本，避免线程安全问题。</li>
+</ul>
+<h4>8、线程池</h4>
+<h5>1)、分类</h5>
+<ul>
+<li>FixThreadPool 固定数量的线程池，适用于对线程管理，高负载的系统</li>
+<li>SingleThreadPool 只有一个线程的线程池，适用于保证任务顺序执行</li>
+<li>CacheThreadPool 创建一个不限制线程数量的线程池，适用于执行短期异步任务的小程序，低负载系统</li>
+<li>ScheduledThreadPool 定时任务使用的线程池，适用于定时任务</li>
+</ul>
+<h5>2)、线程池的几个重要参数</h5>
+<ul>
+<li>int corePoolSize, 核心线程数</li>
+<li>int maximumPoolSize, 最大线程数</li>
+<li>long keepAliveTime, TimeUnit unit, 超过 corePoolSize 的线程的存活时长，超过这个时间，多余的线程会被回收。</li>
+<li>BlockingQueue<runnable> workQueue,  任务的排队队列</runnable></li>
+<li>ThreadFactory threadFactory,   新线程的产生方式</li>
+<li>RejectedExecutionHandler handler)  拒绝策略</li>
+</ul>
+<h5>3)、线程池线程工作过程</h5>
+<p>corePoolSize -&gt; 任务队列 -&gt; maximumPoolSize -&gt; 拒绝策略</p>
+<blockquote>
+<p>核心线程在线程池中一直存活，当有任务需要执行时，直接使用核心线程执行任务。当任务数量大于核心线程数时，加入等待队列。当任务队列数量达到队列最大长度时，继续创建线程，最多达到最大线程数。当设置回收时间时，核心线程以外的空闲线程会被回收。如果达到了最大线程数还不能够满足任务执行需求，则根据拒绝策略做拒绝处理。</p>
+</blockquote>
+<h5>4)、线程池拒绝策略（默认抛出异常）</h5>
+<table>
+<thead></thead>
+<tbody>
+<tr><td align="left">AbortPolicy</td><td align="left">抛出 RejectedExecutionException</td></tr>
+<tr><td align="left">DiscardPolicy</td><td align="left">什么也不做，直接忽略</td></tr>
+<tr><td align="left">DiscardOldestPolicy</td><td align="left">丢弃执行队列中最老的任务，尝试为当前提交的任务腾出位置</td></tr>
+<tr><td align="left">CallerRunsPolicy</td><td align="left">直接由提交任务者执行这个任务</td></tr>
+</tbody>
+</table>
+<h5>5)、如何根据 CPU 核心数设计线程池线程数量</h5>
+<ul>
+<li>IO 密集型 2nCPU</li>
+<li>计算密集型 nCPU+1
+<ul>
+<li>其中 n 为 CPU 核心数量，可通过 <code>Runtime.getRuntime().availableProcessors()</code> 获得核心数：。</li>
+<li>为什么加 1：即使当计算密集型的线程偶尔由于缺失故障或者其他原因而暂停时，这个额外的线程也能确保 CPU 的时钟周期不会被浪费。</li>
+</ul>
+</li>
+</ul>
+<h3>四、Java 虚拟机</h3>
+<h4>1、Java 内存结构</h4>
+<p><img src="https://img.hacpai.com/file/2019/09/image-035bc44d.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>堆<br>
+由线程共享，存放 new 出来的对象，是垃圾回收器的主要工作区域。</li>
+<li>栈<br>
+线程私有，分为 Java 虚拟机栈和本地方法栈，存放局部变量表、操作栈、动态链接、方法出口等信息，方法的执行对应着入栈到出栈的过程。</li>
+<li>方法区<br>
+线程共享，存放已被加载的类信息、常量、静态变量、即时编译器编译后的代码等信息，JDK 1.8 中方法区被元空间取代，使用直接内存。</li>
+</ul>
+<h4>2、Java 类加载机制</h4>
+<p><img src="https://img.hacpai.com/file/2019/10/image-d6ccac53.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>加载<br>
+加载字节码文件。</li>
+<li>链接
+<ul>
+<li>验证<br>
+验证字节码文件的正确性。</li>
+<li>准备<br>
+为静态变量分配内存。</li>
+<li>解析<br>
+将符号引用（如类的全限定名）解析为直接引用（类在实际内存中的地址）。</li>
+</ul>
+</li>
+<li>初始化<br>
+为静态变量赋初值。</li>
+</ul>
+<blockquote>
+<p>双亲委派模式</p>
+</blockquote>
+<blockquote>
+<p>当一个类需要加载时，判断当前类是否被加载过。已经被加载的类会直接返回，否则才会尝试加载。加载的时候，首先会把该请求委派该父类加载器的 <code>loadClass()</code> 处理，因此所有的请求最终都应该传送到顶层的启动类加载器 <code>BootstrapClassLoader</code> 中。当父类加载器无法处理时，才由自己来处理。当父类加载器为 null 时，会使用启动类加载器 <code>BootstrapClassLoader</code> 作为父类加载器。</p>
+</blockquote>
+<h4>3、垃圾回收算法</h4>
+<ul>
+<li>Mark-Sweep（标记-清除）算法<br>
+标记需要回收的对象，然后清除，会造成许多内存碎片。</li>
+<li>Copying（复制）算法<br>
+将内存分为两块，只使用一块，进行垃圾回收时，先将存活的对象复制到另一块区域，然后清空之前的区域。</li>
+<li>Mark-Compact（标记-整理）算法（压缩法）<br>
+与标记清除算法类似，但是在标记之后，将存活对象向一端移动，然后清除边界外的垃圾对象。</li>
+<li>Generational Collection（分代收集）算法<br>
+分为年轻代和老年代，年轻代时比较活跃的对象，使用复制算法做垃圾回收。老年代每次回收只回收少量对象，使用标记整理法。</li>
+</ul>
+<h4>4、典型垃圾回收器</h4>
+<ul>
+<li>
+<p>CMS</p>
+<ul>
+<li>简介<br>
+以获取最短回收停顿时间为目标的收集器，它是一种并发收集器，采用的是 Mark-Sweep 算法。</li>
+<li>场景<br>
+如果你的应用需要更快的响应，不希望有长时间的停顿，同时你的 CPU 资源也比较丰富，就适合适用 CMS 收集器。</li>
+<li>垃圾回收步骤</li>
+</ul>
+<ol>
+<li>初始标记 (Stop the World 事件 CPU 停顿， 很短) 初始标记仅标记一下 GC Roots 能直接关联到的对象，速度很快；</li>
+<li>并发标记 (收集垃圾跟用户线程一起执行) 并发标记过程就是进行 GC Roots 查找的过程；</li>
+<li>重新标记 (Stop the World 事件 CPU 停顿，比初始标记稍微长，远比并发标记短) 修正由于并发标记时应用运行产生变化的标记。</li>
+<li>并发清理，标记清除算法；</li>
+</ol>
+<ul>
+<li>缺点
+<ul>
+<li>并发标记时和应用程序同时进行，占用一部分线程，所以吞吐量有所下降。</li>
+<li>并发清除时和应用程序同时进行，这段时间产生的垃圾就要等下一次 GC 再清除。</li>
+<li>采用的标记清除算法，产生内存碎片，如果要新建大对象，会提前触发 Full GC 。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>G1</p>
+<ul>
+<li>简介<br>
+是一款面向服务端应用的收集器，它能充分利用多 CPU、多核环境。因此它是一款并行与并发收集器，并且它能建立可预测的停顿时间模型，即可以设置 STW 的时间。</li>
+<li>垃圾回收步骤<br>
+1、初始标记(stop the world 事件 CPU 停顿只处理垃圾)；<br>
+2、并发标记(与用户线程并发执行)；<br>
+3、最终标记(stop the world 事件 ,CPU 停顿处理垃圾)；<br>
+4、筛选回收(stop the world 事件 根据用户期望的 GC 停顿时间回收)</li>
+<li>特点
+<ul>
+<li>并发与并行<br>
+充分利用多核 CPU ，使用多核来缩短 STW 时间，部分需要停顿应用线程的操作，仍然可以通过并发保证应用程序的执行。</li>
+<li>分代回收<br>
+新生代，幸存带，老年代</li>
+<li>空间整合<br>
+总体看是采用标记整理算法回收，每个 Region 大小相等，通过复制来回收。</li>
+<li>可预测的停顿时间<br>
+使用 -XX:MaxGCPauseMillis=200 设置最长目标暂停值。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>在 Java 语言中，可作为 GC Roots 的对象包括 4 种情况：</p>
+</blockquote>
+<blockquote>
+<p>a) 虚拟机栈中引用的对象（栈帧中的本地变量表）；<br>
+b) 方法区中类静态属性引用的对象；<br>
+c) 方法区中常量引用的对象；<br>
+d) 本地方法栈中 Native 方法引用的对象。</p>
+</blockquote>
+<h3>五、MySQL （Inno DB）</h3>
+<h4>1、聚簇索引与非聚簇索引</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-41f97c8c.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>都使用 B+ 树作为数据结构</li>
+<li>聚簇索引中数据存在主键索引的叶子结点中，得到 key 即得到 data ；非聚簇索引的数据存在单独的空间。</li>
+<li>聚簇索引中辅助索引的叶子结点存的是主键；非聚簇索引中叶子结点存的是数据的地址；</li>
+<li>聚簇索引的优势是找到主键就找到数据，只需一次磁盘 IO ；当 B+ 树的结点发生变化时，地址也会发生变化，这时非聚簇索引需要更新所有的地址，增加开销。</li>
+</ul>
+<h4>2、为何使用 B 树做索引而不是红黑树？</h4>
+<p>索引很大，通常作为文件存储在磁盘上面，每次检索索引都需要把索引文件加载进内存，所以磁盘 IO 的次数是衡量索引数据结构好坏的重要指标。应用程序在从磁盘读取数据时，不只是读取需要的数据，还会连同其他数据以页的形式做预读来减少磁盘 IO 的次数。数据库的设计者将每个节点的大小设置为一页的大小，同时每次新建节点时都重新申请一个页，这样检索一个节点只需要一次 IO，根据索引定位到数据只需要 h- 1（h 为 B 树高度，根节点常驻内存） 次 IO，而 d (度，可以理解为宽度)与 h 称反比，即 d 越大，高度就越小，所以树越扁，磁盘 IO 次数越少，即渐进复杂度为 logdN ，这也是为什么不选择红黑树做索引的原因。前面可以得出结论，d 越大，索引的性能越好。节点由 key 和 data 组成，页的大小一定，key 和 data 越小，d 越大。B + 树去掉了节点内的 data 域，所以有更大的 d , 性能更好。</p>
+<h4>3、最左前缀原则</h4>
+<p>在 MySQL 中，可以指定多个列为索引，即联合索引。比如 index(name，age) ，最左前缀原则是指查询时精确匹配到从最左边开始的一列或几列（name；name&amp;age），就可以命中索引。如果所有列都用到了，顺序不同，查询引擎会自动优化为匹配联合索引的顺序，这样是能够命中索引的。</p>
+<h4>4、什么情况下可以用到 B 树索引</h4>
+<p>(1) 定义有主键的列一定要建立索引。因为主键可以加速定位到表中的某行</p>
+<p>(2) 定义有外键的列一定要建立索引。外键列通常用于表与表之间的连接，在其上创建索引可以加快表间的连接</p>
+<p>(3) 对于经常查询的数据列最好建立索引。</p>
+<p>① 对于需要在指定范围内快速或频繁查询的数据列，因为索引已经排序，其指定的范围是连续的，查询可以利用索引的排序，加快查询的时间</p>
+<p>② 经常用在 <code>where</code> 子句中的数据列，将索引建立在 <code>where</code> 子句的集合过程中，对于需要加速或频繁检索的数据列，可以让这些经常参与查询的数据列按照索引的排序进行查询，加快查询的时间。</p>
+<h4>5、事务隔离级别</h4>
+<ul>
+<li><strong>Read uncommitted</strong><br>
+读未提交，可能出现脏读，不可重复读，幻读。</li>
+<li><strong>Read committed</strong><br>
+读提交，可能出现不可重复读，幻读。</li>
+<li><strong>Repeatable read</strong><br>
+可重复读，可能出现脏读。</li>
+<li><strong>Serializable</strong><br>
+可串行化，同一数据读写都加锁，避免脏读，性能不忍直视。</li>
+</ul>
+<blockquote>
+<p>Inno DB 默认隔离级别为可重复读级别，分为快照度和当前读，并且通过行锁和间隙锁解决了幻读问题。</p>
+</blockquote>
+<h4>6、MVCC （多版本并发控制）</h4>
+<ul>
+<li>实现细节
+<ul>
+<li>每行数据都存在一个版本，每次数据更新时都更新该版本。</li>
+<li>修改时 Copy 出当前版本随意修改，各个事务之间互不干扰。</li>
+<li>保存时比较版本号，如果成功（commit），则覆盖原记录；失败则放弃 copy（rollback）。</li>
+</ul>
+</li>
+<li>Inno DB 实现</li>
+</ul>
+<blockquote>
+<p>在 InnoDB 中为每行增加两个隐藏的字段，分别是该行数据<strong>创建时的版本号</strong>和<strong>删除时的版本号</strong>，这里的版本号是系统版本号（可以简单理解为事务的 ID），每开始一个新的事务，系统版本号就自动递增，作为事务的 ID 。通常这两个版本号分别叫做创建时间和删除时间。</p>
+</blockquote>
+<p>详细参考：<a href="https://aysaml.com/articles/2020/01/04/1578137608006.html">《 脏读、幻读和不可重复读》</a></p>
+<h3>六、Spring 相关</h3>
+<h4>1、Bean 的作用域</h4>
+<table>
+<thead></thead>
+<tbody>
+<tr><td align="left">类别</td><td align="left">说明</td></tr>
+<tr><td align="left">singleton</td><td align="left">默认在 Spring 容器中仅存在一个实例</td></tr>
+<tr><td align="left">prototype</td><td align="left">每次调用 getBean() 都重新生成一个实例</td></tr>
+<tr><td align="left">request</td><td align="left">为每个 HTTP 请求生成一个实例</td></tr>
+<tr><td align="left">session</td><td align="left">同一个 HTTP session 使用一个实例，不同 session 使用不同实例</td></tr>
+</tbody>
+</table>
+<h4>2、Bean 生命周期</h4>
+<p>简单来说四步：</p>
+<ul>
+<li>
+<ol>
+<li>实例化 Instantiation</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>属性赋值 Populate</li>
+</ol>
+</li>
+<li>
+<ol start="3">
+<li>初始化 Initialization</li>
+</ol>
+</li>
+<li>
+<ol start="4">
+<li>销毁 Destruction</li>
+</ol>
+</li>
+</ul>
+<p>在这四步的基础上面，Spring 提供了一些拓展点：</p>
+<ul>
+<li><strong>Bean 自身的方法</strong>: 这个包括了 Bean 本身调用的方法和通过配置文件中 %3Cbean %3E 的 init-method 和 destroy-method 指定的方法</li>
+<li><strong>Bean 级生命周期接口方法</strong>: 这个包括了 BeanNameAware、BeanFactoryAware、InitializingBean 和 DiposableBean 这些接口的方法</li>
+<li><strong>容器级生命周期接口方法</strong>：这个包括了 InstantiationAwareBeanPostProcessor 和 BeanPostProcessor 这两个接口实现，一般称它们的实现类为“后处理器”。</li>
+<li><strong>工厂后处理器接口方法</strong>: 这个包括了 AspectJWeavingEnabler, ConfigurationClassPostProcessor, CustomAutowireConfigurer 等等非常有用的工厂后处理器接口的方法。工厂后处理器也是容器级的。在应用上下文装配配置文件之后立即调用。</li>
+</ul>
+<h4>3、Spring AOP</h4>
+<p>实现方式两种：</p>
+<ul>
+<li>JDK 动态代理：带有接口的对象，在运行期实现</li>
+<li>CGlib 静态代理：在编译期实现。</li>
+</ul>
+<h4>4、Spring 事务传播行为</h4>
+<p>默认 <strong>PROPAGATION_REQUIRED</strong> ，如果存在一个事务，则支持当前事务。如果没有事务则开启一个新的事务。</p>
+<p><img src="https://img.hacpai.com/file/2020/02/image-b9301da6.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4>5、Spring IoC</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-7bc23800.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4>6、Spring MVC 工作流程</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-52e69765.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt=""></p>
+<h3>七、计算机网络</h3>
+<h4>1、TCP/IP 五层模型</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-89734291.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4>2、浏览器输入地址后做了什么？</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-b769e36c.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4>3、三次握手与四次挥手</h4>
+<ul>
+<li>三次握手<br>
+<img src="https://img.hacpai.com/file/2020/02/image-cf67f43a.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></li>
+<li>四次挥手<br>
+<img src="https://img.hacpai.com/file/2020/02/image-8481d6e5.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></li>
+</ul>
+<h4>4、TIME_WAIT 与 CLOSE_WAIT</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-fc69fc5f.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4>5、TCP 滑动窗口</h4>
+<p>TCP 流量控制，主要使用<strong>滑动窗口协议</strong>，滑动窗口是接受数据端使用的窗口大小，用来告诉发送端接收端的缓存大小，以此可以控制发送端发送数据的大小，从而达到流量控制的目的。这个窗口大小就是我们一次传输几个数据。对所有数据帧按顺序赋予编号，发送方在发送过程中始终保持着一个发送窗口，只有落在发送窗口内的帧才允许被发送；同时接收方也维持着一个接收窗口，只有落在接收窗口内的帧才允许接收。</p>
+<h4>6、TCP 粘包和拆包</h4>
+<ul>
+<li>现象<br>
+<img src="https://img.hacpai.com/file/2020/02/image-4232d01a.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></li>
+<li>产生原因<br>
+1、要发送的数据大于 TCP 发送缓冲区剩余空间大小，将会发生拆包。<br>
+2、待发送数据大于 MSS（最大报文长度），TCP 在传输前将进行拆包。<br>
+3、要发送的数据小于 TCP 发送缓冲区的大小，TCP 将多次写入缓冲区的数据一次发送出去，将会发生粘包。<br>
+4、接收数据端的应用层没有及时读取接收缓冲区中的数据，将发生粘包。</li>
+<li>解决方式<br>
+1、发送端给每个数据包添加包首部，首部中应该至少包含数据包的长度，这样接收端在接收到数据后，通过读取包首部的长度字段，便知道每一个数据包的实际长度了。<br>
+2、发送端将每个数据包封装为固定长度（不够的可以通过补 0 填充），这样接收端每次从接收缓冲区中读取固定长度的数据就自然而然的把每个数据包拆分开来。<br>
+3、可以在数据包之间设置边界，如添加特殊符号，这样，接收端通过这个边界就可以将不同的数据包拆分开。</li>
+</ul>
+<h3>八、MQ 消息队列</h3>
+<h4>1、场景作用</h4>
+<p><strong>削峰填谷，异步解耦</strong>。</p>
+<h4>2、如何保证消息不被重复消费呢？</h4>
+<p>这个问题可以换个思路，保证消息重复消费，其实是保证程序的幂等性。无论消息如何重复，程序运行的结果是一致的。比如消费消息后做数据库插入操作，为了防止消息重复消费，可以在插入前先查询一下有没有对应的数据。</p>
+<h4>3、怎么保证从消息队列里拿到的数据按顺序执行？</h4>
+<p>消费端在接收到消息后放入内存队列，然后对队列中的消息进行有序消费。</p>
+<h4>4、如何解决消息队列的延时以及过期失效问题？消息队列满了以后该怎么处理？有几百万消息持续积压几小时，说说怎么解决？</h4>
+<p>消息过期失效问题，如果消息一段时间不消费，导致过期失效了，消息就丢失了，只能重新查出丢失的消息，重新发送。<br>
+再来说消息积压的问题：（思路是快速消费掉积压的消息）</p>
+<ul>
+<li>首先排查消费端问题，恢复消费端正常消费速度。</li>
+<li>然后着手处理队列中的积压消息。
+<ul>
+<li>停掉现有的 consumer。</li>
+<li>新建一个 topic ，设置之前 10 倍的 partation，之前 10 倍的队列。</li>
+<li>写一个分发程序，将积压的消息均匀的轮询写入这些队列。</li>
+<li>然后临时用 10 倍的机器部署 consumer，每一批 consumer 消费 1 个临时的队列。</li>
+<li>消费完毕后，恢复原有架构。</li>
+</ul>
+</li>
+</ul>
+<p>消息队列满了：只能边接收边丢弃，然后重新补回丢失的消息，再做消费。</p>
+<h4>4、如何保证消息的可靠性传输（如何处理消息丢失的问题）？</h4>
+<p>kafka 为例：</p>
+<ul>
+<li>消费者丢了数据：<br>
+每次消息消费后，由自动提交 offset 改为手动提交 offset 。</li>
+<li>kafka 丢了消息：<br>
+比较常见的一个场景，就是 kafka 某个 broker 宕机，然后重新选举 partition 的 leader 时。要是此时其他的 follower 刚好还有些数据没有同步，结果此时 leader 挂了，然后大家选举某个 follower 成为 leader 之后，不就少了一些数据。
+<ul>
+<li>给 topic 设置<strong>replication.factor</strong>参数：这个值必须大于 1，要求每个 partition 必须有至少两个副本。</li>
+<li>在 kafka 服务端设置<strong>min.insync.replicas</strong>参数：这个值必须大于 1，这个是要求一个 leader 至少感知到有至少一个 follower 还跟自己保持联系，没掉队，这样才能确保 leader 挂了还有一个 follower。</li>
+<li>在 producer 端设置<strong>acks=all</strong>：这个是要求每条数据，必须是写入所有 replica 之后，才能认为是写成功了。</li>
+<li>在 producer 端设置<strong>retries=MAX</strong>（很大很大很大的一个值，无限次重试的意思）：这个是要求一旦写入失败，就无限重试，卡在这里。</li>
+</ul>
+</li>
+<li>生产者丢了消息：<br>
+如果按照上述的思路设置了 ack=all，一定不会丢，要求是，你的 leader 接收到消息，所有的 follower 都同步到了消息之后，才认为本次写成功了。如果没满足这个条件，生产者会自动不断的重试，重试无限次。</li>
+</ul>
+<h3>九、Redis</h3>
+<h4>1、数据类型</h4>
+<ul>
+<li>String</li>
+</ul>
+<blockquote>
+<p>常用命令： set,get,decr,incr,mget 等。</p>
+</blockquote>
+<ul>
+<li>Hash</li>
+</ul>
+<blockquote>
+<p>常用命令： hget,hset,hgetall 等</p>
+</blockquote>
+<ul>
+<li>List</li>
+</ul>
+<blockquote>
+<p>常用命令： lpush,rpush,lpop,rpop,lrange 等</p>
+</blockquote>
+<p>可以通过 lrange 命令，就是从某个元素开始读取多少个元素，可以基于 list 实现分页查询。</p>
+<ul>
+<li>Set</li>
+</ul>
+<blockquote>
+<p>常用命令： sadd,spop,smembers,sunion 等</p>
+</blockquote>
+<ul>
+<li>Sort Set</li>
+</ul>
+<blockquote>
+<p>常用命令： zadd,zrange,zrem,zcard 等</p>
+</blockquote>
+<h4>2、Redis 如何实现 key 的过期删除？</h4>
+<blockquote>
+<p>定期删除和惰性删除的形式。</p>
+</blockquote>
+<ul>
+<li>定期删除<br>
+Redis 每隔一段时间从设置过期时间的 key 集合中，随机抽取一些 key ，检查是否过期，如果已经过期做删除处理。</li>
+<li>惰性删除<br>
+Redis 在 key 被访问的时候检查 key 是否过期，如果过期则删除。</li>
+</ul>
+<h4>3、Redis 的持久化机制</h4>
+<blockquote>
+<p>数据快照（RDB）+ 修改数据语句文件（AOF）</p>
+</blockquote>
+<h4>4、如何解决 Redis 缓存雪崩和缓存穿透？</h4>
+<ul>
+<li>
+<p>缓存雪崩<br>
+缓存同一时间大面积的失效，所以，后面的请求都会落到数据库上，造成数据库短时间内承受大量请求而崩掉。</p>
+<ul>
+<li>解决方式
+<ul>
+<li>事前：保证 Redis 集群的稳定性，发现机器宕机尽快补上，设置合适的内存淘汰策略。</li>
+<li>事中：本地缓存 + 限流降级，避免大量请求落在数据库上。</li>
+<li>事后：利用 Redis 持久化机制尽快恢复缓存。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>缓存穿透<br>
+一般是黑客故意去请求缓存中不存在的数据，导致所有的请求都落到数据库上，造成数据库短时间内承受大量请求而崩掉。</p>
+<ul>
+<li>解决方式<br>
+将不存在的数据列举到一个足够大的 map 上，这样遭到攻击时，直接拦截 map 中的请求，请求到数据库上面。或是把不存在的也做缓存，值为 null ，设置过期时间。</li>
+</ul>
+</li>
+</ul>
+<h4>5、如何使用 Redis 实现消息队列？</h4>
+<p>Redis 实现消息队列依赖于 Redis 集群的稳定性，通常不建议使用。</p>
+<ul>
+<li>Redis 自带发布订阅功能，基于 publish 和 subscribe 命令。</li>
+<li>使用 List 存储消息，lpush，rpop 分别发送接收消息。</li>
+</ul>
+<h3>十、Nginx</h3>
+<blockquote>
+<p>Nginx 是一款轻量级的 Web 服务器/反向代理服务器及电子邮件（IMAP/POP3）代理服务器。 Nginx 主要提供反向代<br>
+理、负载均衡、动静分离(静态资源服务)等服务。</p>
+</blockquote>
+<h4>1、正向代理和反向代理</h4>
+<ul>
+<li>正向代理<br>
+代理客户端访问服务器。典型：VPN</li>
+<li>反向代理<br>
+代替服务器接收客户端请求，然后转发给服务器，服务器接收请求并将处理的结果通过代理服务器转发给客户端。</li>
+</ul>
+<h4>2、负载均衡</h4>
+<blockquote>
+<p>将请求分摊到多台机器上去，高并发，增加吞吐量。</p>
+</blockquote>
+<ul>
+<li>负载均衡算法
+<ul>
+<li>权重轮询</li>
+<li>fair</li>
+<li>ip_hash</li>
+<li>url_hash</li>
+</ul>
+</li>
+</ul>
+<h4>3、动静分离</h4>
+<p>动静分离是让动态网站里的动态网页根据一定规则把不变的资源和经常变的资源区分开来，动静资源做好了拆分以后，我们就可以根据静态资源的特点将其做缓存操作，这就是网站静态化处理的核心思路。</p>
+<h4>4、Nginx 四个组成部分</h4>
+<ul>
+<li>Nginx 二进制可执行文件：由各模块源码编译出一个文件</li>
+<li>Nginx.conf 配置文件：控制 Nginx 行为</li>
+<li>acess.log 访问日志： 记录每一条 HTTP 请求信息</li>
+<li>error.log 错误日志：定位问题</li>
+</ul>]]></description>
+      <author>wangning1018</author>
+      <guid>https://aysaml.github.io/interview.html</guid>
+      <category>面试</category>
+      <pubDate>Sun, 23 Feb 2020 15:26:04 +0800</pubDate>
+    </item>
+  </channel>
+</rss>

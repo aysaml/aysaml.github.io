@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>Java 面试知识总结回顾 - 码恋</title><meta name="description" content="Java 面试的口述类题目"/><meta property="og:description" content="Java 面试的口述类题目"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="Java 面试知识总结回顾 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/interview.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="Java 面试知识总结回顾 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/interview.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="脏读、幻读和不可重复读" href="https://aysaml.github.io/articles/2020/01/04/1578137608006.html">
+            <link rel="next" title="一文理解二叉树的遍历" href="https://aysaml.github.io/articles/2020/04/29/1588154150735.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">Java 面试知识总结回顾</div>
+<div class="article__share"
+     data-title="Java 面试知识总结回顾"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/interview.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2020-02-23
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/%E9%9D%A2%E8%AF%95">面试</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                Java 面试知识总结回顾
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20180921.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20180921.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h3 id="toc_h3_0">一、Java 基础知识</h3>
+<h4 id="toc_h4_1">1、Object 类相关方法</h4>
+<ul>
+<li>getClass<br>
+获取当前运行时对象的 Class 对象。</li>
+<li>hashCode<br>
+返回对象的 hash 码。</li>
+<li>clone<br>
+拷贝当前对象， 必须实现 Cloneable 接口。<strong>浅拷贝</strong>对基本类型进行值拷贝，对引用类型拷贝引用；<strong>深拷贝</strong>对基本类型进行值拷贝，对引用类型对象不但拷贝对象的引用还拷贝对象的相关属性和方法。两者不同在于深拷贝创建了一个新的对象。</li>
+<li>equals<br>
+通过内存地址比较两个对象是否相等，String 类重写了这个方法使用值来比较是否相等。</li>
+<li>toString<br>
+返回类名@哈希码的 16 进制。</li>
+<li>notify<br>
+唤醒当前对象监视器的任一个线程。</li>
+<li>notifyAll<br>
+唤醒当前对象监视器上的所有线程。</li>
+<li>wait<br>
+1、暂停线程的执行；2、三个不同参数方法（等待多少毫秒；额外等待多少毫秒；一直等待）3、与 <code>Thread.sleep(long time)</code> 相比，sleep 使当前线程休眠一段时间，并没有释放该对象的锁，wait 释放了锁。</li>
+<li>finalize<br>
+对象被垃圾回收器回收时执行的方法。</li>
+</ul>
+<h4 id="toc_h4_2">2、基本数据类型</h4>
+<ul>
+<li>整型：byte(8)、short(16)、int(32)、long(64)</li>
+<li>浮点型：float(32)、double(64)</li>
+<li>布尔型：boolean(8)</li>
+<li>字符型：char(16)</li>
+</ul>
+<h4 id="toc_h4_3">3、序列化</h4>
+<p>Java 对象实现序列化要实现 Serializable 接口。</p>
+<ul>
+<li>反序列化并不会调用构造方法。反序列的对象是由 JVM 自己生成的对象，不通过构造方法生成。</li>
+<li>序列化对象的引用类型成员变量，也必须是可序列化的，否则，会报错。</li>
+<li>如果想让某个变量不被序列化，使用 transient 修饰。</li>
+<li>单例类序列化，需要重写 readResolve() 方法。</li>
+</ul>
+<h4 id="toc_h4_4">4、String、StringBuffer、StringBuilder</h4>
+<ul>
+<li>String<br>
+由 char[] 数组构成，使用了 final 修饰，是不可变对象，可以理解为常量，线程安全；对 String 进行改变时每次都会新生成一个 String 对象，然后把指针指向新的引用对象。</li>
+<li>StringBuffer 线程安全；StringBuiler 线程不安全。</li>
+<li>操作少量字符数据用 String；单线程操作大量数据用 StringBuilder；多线程操作大量数据用 StringBuffer。</li>
+</ul>
+<h4 id="toc_h4_5">5、重载与重写</h4>
+<ul>
+<li>重载<br>
+发生在同一个类中，方法名相同，参数的类型、个数、顺序不同，方法的返回值和修饰符可以不同。</li>
+<li>重写<br>
+发生在父子类中，方法名和参数相同，返回值范围小于等于父类，抛出的异常范围小于等于父类，访问修饰符范围大于等于父类；如果父类方法访问修饰符为 private 或者 final 则子类就不能重写该方法。</li>
+</ul>
+<h4 id="toc_h4_6">6、final</h4>
+<ul>
+<li>修饰基本类型变量，一经出初始化后就不能够对其进行修改。</li>
+<li>修饰引用类型变量，不能够指向另一个引用。</li>
+<li>修饰类或方法，不能被继承或重写。</li>
+</ul>
+<h4 id="toc_h4_7">7、反射</h4>
+<ul>
+<li>在运行时动态的获取类的完整信息</li>
+<li>增加程序的灵活性</li>
+<li>JDK 动态代理使用了反射</li>
+</ul>
+<h4 id="toc_h4_8">8、JDK 动态代理</h4>
+<ul>
+<li>使用步骤
+<ul>
+<li>创建接口及实现类</li>
+<li>实现代理处理器：实现 InvokationHandler ，实现 invoke（Proxy proxy，Method method，Object[] args） 方法</li>
+<li>通过 Proxy.newProxyInstance(ClassLoaderloader, Class[] interfaces, InvocationHandler h) 获得代理类</li>
+<li>通过代理类调用方法。</li>
+</ul>
+</li>
+</ul>
+<h4 id="toc_h4_9">9、Java IO</h4>
+<ul>
+<li>普通 IO ，面向流，同步阻塞线程。</li>
+<li>NIO，面向缓冲区，同步非阻塞。</li>
+</ul>
+<h3 id="toc_h3_10">二、Java 集合框架</h3>
+<h4 id="toc_h4_11">1、List（线性结构）</h4>
+<ul>
+<li>ArrayList<br>
+Object[] 数组实现，默认大小为 10 ，支持随机访问，连续内存空间，插入末尾时间复杂度 o(1)，插入第 i 个位置时间复杂度 o(n - i)。扩容，大小变为 <strong>1.5</strong> 倍，Arrays.copyOf（底层 System.ArrayCopy），复制到新数组，指针指向新数组。</li>
+<li>Vector<br>
+类似 ArrayList，线程安全，扩容默认增长为原来的 <strong>2</strong> 倍，还可以指定增长空间长度。</li>
+<li>LinkedList<br>
+基于链表实现，1.7 为双向链表，1.6 为双向循环链表，取消循环更能分清头尾。</li>
+</ul>
+<h4 id="toc_h4_12">2、Map（K，V 对）</h4>
+<ul>
+<li>HashMap
+<ul>
+<li>底层数据结构，JDK 1.8 是<strong>数组 + 链表 + 红黑树</strong>，JDK 1.7 无红黑树。链表长度大于 8 时，转化为红黑树，优化查询效率。</li>
+<li>初始容量为 <strong>16</strong>，通过 tableSizeFor 保证容量为 2 的幂次方。寻址方式，高位异或，<strong>(n-1)&amp;h</strong> 取模，优化速度。</li>
+<li>扩容机制，当元素数量大于容量 x 负载因子 0.75 时，容量扩大为原来的 2 倍，新建一个数组，然后转移到新数组。</li>
+<li>基于 Map 实现。</li>
+<li>线程不安全。</li>
+</ul>
+</li>
+<li>HashMap (1.7) 多线程循环链表问题
+<ul>
+<li>在多线程环境下，进行扩容时，1.7 下的 HashMap 会形成循环链表。</li>
+<li>怎么形成循环链表：<br>
+假设有一 HashMap 容量为 2 ， 在数组下标 1 位置以 A -&gt; B 链表形式存储。有一线程对该 map 做 put 操作，由于触发扩容条件，需要进行扩容。这时另一个线程也 put 操作，同样需要扩容，并完成了扩容操作，由于复制到新数组是头部插入，所以 1 位置变为 B -&gt; A 。这时第一个线程继续做扩容操作，首先复制 A ，然后复制 B ，再判断 B.next 是否为空时，由于第二个线程做了扩容操作，导致 B.next = A，所以在将 A 放到 B 前，A.next 又等于 B ，导致循环链表出现。</li>
+</ul>
+</li>
+<li>HashTable
+<ul>
+<li>线程安全，方法基本全用 Synchronized 修饰。</li>
+<li>初始容量为 11 ，扩容为 2n + 1 。</li>
+<li>继承 <strong>Dictionary</strong> 类。</li>
+</ul>
+</li>
+<li>ConcurrentHashMap
+<ul>
+<li>线程安全的 HashMap。</li>
+<li>1.7 采用分段锁的形式加锁；1.8 使用 Synchronized 和 CAS 实现同步，若数组的 Node 为空，则通过 CAS 的方式设置值，不为空则加在链表的第一个节点。获取第一个元素是否为空使用 Unsafe 类提供的 getObjectVolatile 保证可见性。</li>
+<li>对于读操作，数组由 volatile 修饰，同时数组的元素为 Node，Node 的 K 使用 final 修饰，V 使用 volatile 修饰，下一个节点也用 volatile 修饰，保证多线程的可见性。</li>
+</ul>
+</li>
+<li>LinkedHashMap<br>
+LinkedHashMap 继承自 HashMap，所以它的底层仍然是基于拉链式散列结构即由数组和链表或红黑树组成。另外，LinkedHashMap 在上面结构的基础上，增加了一条双向链表，使得上面的结构可以保持键值对的插入顺序。</li>
+<li>TreeMap<br>
+有序的 Map，红黑树结构，可以自定义比较器来进行排序。</li>
+<li>Collections.synchronizedMap 如何实现 Map 线程安全？<br>
+基于 Synchronized ，实际上就是锁住了当前传入的 Map 对象。</li>
+</ul>
+<h4 id="toc_h4_13">3、Set（唯一值）</h4>
+<ul>
+<li>HashSet<br>
+基于 HashMap 实现，使用了 HashMap 的 K 作为元素存储，V 为 new Object() ，在 add() 方法中如果两个元素的 Hash 值相同，则通过 equals 方法比较是否相等。</li>
+<li>LinkedHashSet<br>
+LinkedHashSet 继承于 HashSet，并且其内部是通过 LinkedHashMap 来实现的。</li>
+<li>TreeSet<br>
+红黑树实现有序唯一。</li>
+</ul>
+<h3 id="toc_h3_14">三、Java 多线程</h3>
+<h4 id="toc_h4_15">1、synchronized</h4>
+<ul>
+<li>修饰代码块<br>
+底层实现，通过 monitorenter &amp; monitorexit 标志代码块为同步代码块。</li>
+<li>修饰方法<br>
+底层实现，通过 ACC_SYNCHRONIZED 标志方法是同步方法。</li>
+<li>修饰类 class 对象时，实际锁在类的实例上面。</li>
+<li>单例模式</li>
+</ul>
+<pre><code class="language-java">public class Singleton {
+
+    private static volatile Singleton instance = null;
+
+    private Singleton(){}
+
+    public static Singleton getInstance(){
+	if (null == instance) {
+		synchronized (Singleton.class) {
+		    if (null == instance) {
+			instance = new Singleton();
+		    }
+		}
+	  }
+		return instance;
+        }
+}
+</code></pre>
+<ul>
+<li>偏向锁，自旋锁，轻量级锁，重量级锁
+<ul>
+<li>通过 synchronized 加锁，第一个线程获取的锁为偏向锁，这时有其他线程参与锁竞争，升级为轻量级锁，其他线程通过循环的方式尝试获得锁，称自旋锁。若果自旋的次数达到一定的阈值，则升级为重量级锁。</li>
+<li>需要注意的是，在第二个线程获取锁时，会先判断第一个线程是否仍然存活，如果不存活，不会升级为轻量级锁。</li>
+</ul>
+</li>
+</ul>
+<h4 id="toc_h4_16">2、Lock</h4>
+<ul>
+<li>ReentrantLock
+<ul>
+<li>基于 AQS （AbstractQueuedSynchronizer）实现，主要有 state (资源) + FIFO (线程等待队列) 组成。</li>
+<li>公平锁与非公平锁：区别在于在获取锁时，公平锁会判断当前队列是否有正在等待的线程，如果有则进行排队。</li>
+<li>使用 lock() 和 unLock() 方法来加锁解锁。</li>
+</ul>
+</li>
+<li>ReentrantReadWriteLock
+<ul>
+<li>同样基于 AQS 实现，内部采用内部类的形式实现了读锁（共享锁）和写锁 （排它锁）。</li>
+</ul>
+</li>
+<li>非公平锁吞吐量高<br>
+在获取锁的阶段来分析，当某一线程要获取锁时，非公平锁可以直接尝试获取锁，而不是判断当前队列中是否有线程在等待。一定情况下可以避免线程频繁的上下文切换，这样，活跃的线程有可能获得锁，而在队列中的锁还要进行唤醒才能继续尝试获取锁，而且线程的执行顺序一般来说不影响程序的运行。</li>
+</ul>
+<h4 id="toc_h4_17">3、volatile</h4>
+<ul>
+<li>Java 内存模型</li>
+</ul>
+<p><img src="https://img.hacpai.com/file/2020/02/image-13ac2802.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>在多线程环境下，保证变量的可见性。使用了 volatile 修饰变量后，<strong>在变量修改后会立即同步到主存中，每次用这个变量前会从主存刷新。</strong></li>
+<li>禁止 JVM 指令重排序。</li>
+<li>单例模式双重校验锁变量为什么使用 volatile 修饰？<br>
+禁止 JVM 指令重排序，new Object()分为三个步骤：申请内存空间，将内存空间引用赋值给变量，变量初始化。如果不禁止重排序，有可能得到一个未经初始化的变量。</li>
+</ul>
+<h4 id="toc_h4_18">4、线程的五种状态</h4>
+<h5 id="toc_h5_19">1). New</h5>
+<p>一个新的线程被创建，还没开始运行。</p>
+<h5 id="toc_h5_20">2). Runnable</h5>
+<p>一个线程准备就绪，随时可以运行的时候就进入了 Runnable 状态。</p>
+<p>Runnable 状态可以是实际正在运行的线程，也可以是随时可以运行的线程。</p>
+<p>多线程环境下，每个线程都会被分配一个固定长度的 CPU 计算时间，每个线程运行一会儿就会停止让其他线程运行，这样才能让每个线程公平的运行。这些等待 CPU 和正在运行的线程就处于 Runnable 状态。</p>
+<h5 id="toc_h5_21">3). Blocked</h5>
+<p>例如一个线程在等待 I/O 资源，或者它要访问的被保护代码已经被其他线程锁住了，那么它就在阻塞 Blocked 状态，这个线程所需的资源到位后就转入 Runnable 状态。</p>
+<h5 id="toc_h5_22">4). Waiting（无限期等待）</h5>
+<p>如果一个线程在等待其他线程的唤醒，那么它就处于 Waiting 状态。以下方法会让线程进入等待状态：</p>
+<ul>
+<li>Object.wait()</li>
+<li>Thread.join()</li>
+<li>LockSupport.park()</li>
+</ul>
+<h5 id="toc_h5_23">5). Timed Waiting（有期限等待）</h5>
+<p>无需等待被其他线程显示唤醒，在一定时间后有系统自动唤醒。</p>
+<p>以下方法会让线程进入有限等待状态：</p>
+<ul>
+<li>Thread.sleep(sleeptime)</li>
+<li>Object.wait(timeout)</li>
+<li>Thread.join(timeout)</li>
+<li>LockSupport.parkNanos(timeout)</li>
+<li>LockSupport.parkUntil(timeout)</li>
+</ul>
+<h5 id="toc_h5_24">6). Terminated</h5>
+<p>一个线程正常执行完毕，或者意外失败，那么就结束了。</p>
+<h4 id="toc_h4_25">5、 wait() 与 sleep()</h4>
+<ul>
+<li>调用后线程进入 waiting 状态。</li>
+<li>wait() 释放锁，sleep() 没有释放锁。</li>
+<li>调用 wait() 后需要调用 notify() 或 notifyAll() 方法唤醒线程。</li>
+<li>wait() 方法声明在 Object 中，sleep() 方法声明在 Thread 中。</li>
+</ul>
+<h4 id="toc_h4_26">6、 yield()</h4>
+<ul>
+<li>调用后线程进入 runnable 状态。</li>
+<li>让出 CPU 时间片，之后有可能其他线程获得执行权，也有可能这个线程继续执行。</li>
+</ul>
+<h4 id="toc_h4_27">7、 join()</h4>
+<ul>
+<li>在线程 B 中调用了线程 A 的 Join()方法，直到线程 A 执行完毕后，才会继续执行线程 B。</li>
+<li>可以保证线程的顺序执行。</li>
+<li>join() 方法必须在 线程启动后调用才有意义。</li>
+<li>使用 wait() 方法实现。</li>
+</ul>
+<h4 id="toc_h4_28">9、线程使用方式</h4>
+<ul>
+<li>继承 Tread 类</li>
+<li>实现 Runnable 接口</li>
+<li>实现 Callable 接口：带有返回值</li>
+</ul>
+<h4 id="toc_h4_29">10、Runnable 和 Callable 比较</h4>
+<ol>
+<li>方法签名不同， <code>void Runnable.run()</code> , <code>V Callable.call() throws Exception</code></li>
+<li>是否允许有返回值， <code>Callable</code> 允许有返回值</li>
+<li>是否允许抛出异常， <code>Callable</code> 允许抛出异常。</li>
+<li>提交任务方式， <code>Callable</code> 使用 <code>Future&lt;T&gt; submit(Callable&lt;T&gt; task)</code> 返回 Future 对象，调用其 get() 方法可以获得返回值， <code>Runnable</code> 使用 <code>void execute(Runnable command)</code> 。</li>
+</ol>
+<h4 id="toc_h4_30">11、hapens-before</h4>
+<p>如果一个操作 happens-before 另一个操作，那么第一个操作的执行结果将对第二个操作可见，而且第一个操作的执行顺序排在第二个操作之前。</p>
+<h4 id="toc_h4_31">12、ThreadLocal</h4>
+<ul>
+<li>场景<br>
+主要用途是为了保持线程自身对象和避免参数传递，主要适用场景是按线程多实例（每个线程对应一个实例）的对象的访问，并且这个对象很多地方都要用到。</li>
+<li>原理<br>
+为每个线程创建变量副本，不同线程之间不可见，保证线程安全。使用 ThreadLocalMap 存储变量副本，以 ThreadLocal 为 K，这样一个线程可以拥有多个 ThreadLocal 对象。</li>
+<li>实际<br>
+使用多数据源时，需要根据数据源的名字切换数据源，假设一个线程设置了一个数据源，这个时候就有可能有另一个线程去修改数据源，可以使用 ThreadLocal 维护这个数据源名字，使每个线程持有数据源名字的副本，避免线程安全问题。</li>
+</ul>
+<h4 id="toc_h4_32">8、线程池</h4>
+<h5 id="toc_h5_33">1)、分类</h5>
+<ul>
+<li>FixThreadPool 固定数量的线程池，适用于对线程管理，高负载的系统</li>
+<li>SingleThreadPool 只有一个线程的线程池，适用于保证任务顺序执行</li>
+<li>CacheThreadPool 创建一个不限制线程数量的线程池，适用于执行短期异步任务的小程序，低负载系统</li>
+<li>ScheduledThreadPool 定时任务使用的线程池，适用于定时任务</li>
+</ul>
+<h5 id="toc_h5_34">2)、线程池的几个重要参数</h5>
+<ul>
+<li>int corePoolSize, 核心线程数</li>
+<li>int maximumPoolSize, 最大线程数</li>
+<li>long keepAliveTime, TimeUnit unit, 超过 corePoolSize 的线程的存活时长，超过这个时间，多余的线程会被回收。</li>
+<li>BlockingQueue<runnable> workQueue,  任务的排队队列</runnable></li>
+<li>ThreadFactory threadFactory,   新线程的产生方式</li>
+<li>RejectedExecutionHandler handler)  拒绝策略</li>
+</ul>
+<h5 id="toc_h5_35">3)、线程池线程工作过程</h5>
+<p>corePoolSize -&gt; 任务队列 -&gt; maximumPoolSize -&gt; 拒绝策略</p>
+<blockquote>
+<p>核心线程在线程池中一直存活，当有任务需要执行时，直接使用核心线程执行任务。当任务数量大于核心线程数时，加入等待队列。当任务队列数量达到队列最大长度时，继续创建线程，最多达到最大线程数。当设置回收时间时，核心线程以外的空闲线程会被回收。如果达到了最大线程数还不能够满足任务执行需求，则根据拒绝策略做拒绝处理。</p>
+</blockquote>
+<h5 id="toc_h5_36">4)、线程池拒绝策略（默认抛出异常）</h5>
+<table>
+<thead></thead>
+<tbody>
+<tr><td align="left">AbortPolicy</td><td align="left">抛出 RejectedExecutionException</td></tr>
+<tr><td align="left">DiscardPolicy</td><td align="left">什么也不做，直接忽略</td></tr>
+<tr><td align="left">DiscardOldestPolicy</td><td align="left">丢弃执行队列中最老的任务，尝试为当前提交的任务腾出位置</td></tr>
+<tr><td align="left">CallerRunsPolicy</td><td align="left">直接由提交任务者执行这个任务</td></tr>
+</tbody>
+</table>
+<h5 id="toc_h5_37">5)、如何根据 CPU 核心数设计线程池线程数量</h5>
+<ul>
+<li>IO 密集型 2nCPU</li>
+<li>计算密集型 nCPU+1
+<ul>
+<li>其中 n 为 CPU 核心数量，可通过 <code>Runtime.getRuntime().availableProcessors()</code> 获得核心数：。</li>
+<li>为什么加 1：即使当计算密集型的线程偶尔由于缺失故障或者其他原因而暂停时，这个额外的线程也能确保 CPU 的时钟周期不会被浪费。</li>
+</ul>
+</li>
+</ul>
+<h3 id="toc_h3_38">四、Java 虚拟机</h3>
+<h4 id="toc_h4_39">1、Java 内存结构</h4>
+<p><img src="https://img.hacpai.com/file/2019/09/image-035bc44d.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>堆<br>
+由线程共享，存放 new 出来的对象，是垃圾回收器的主要工作区域。</li>
+<li>栈<br>
+线程私有，分为 Java 虚拟机栈和本地方法栈，存放局部变量表、操作栈、动态链接、方法出口等信息，方法的执行对应着入栈到出栈的过程。</li>
+<li>方法区<br>
+线程共享，存放已被加载的类信息、常量、静态变量、即时编译器编译后的代码等信息，JDK 1.8 中方法区被元空间取代，使用直接内存。</li>
+</ul>
+<h4 id="toc_h4_40">2、Java 类加载机制</h4>
+<p><img src="https://img.hacpai.com/file/2019/10/image-d6ccac53.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>加载<br>
+加载字节码文件。</li>
+<li>链接
+<ul>
+<li>验证<br>
+验证字节码文件的正确性。</li>
+<li>准备<br>
+为静态变量分配内存。</li>
+<li>解析<br>
+将符号引用（如类的全限定名）解析为直接引用（类在实际内存中的地址）。</li>
+</ul>
+</li>
+<li>初始化<br>
+为静态变量赋初值。</li>
+</ul>
+<blockquote>
+<p>双亲委派模式</p>
+</blockquote>
+<blockquote>
+<p>当一个类需要加载时，判断当前类是否被加载过。已经被加载的类会直接返回，否则才会尝试加载。加载的时候，首先会把该请求委派该父类加载器的 <code>loadClass()</code> 处理，因此所有的请求最终都应该传送到顶层的启动类加载器 <code>BootstrapClassLoader</code> 中。当父类加载器无法处理时，才由自己来处理。当父类加载器为 null 时，会使用启动类加载器 <code>BootstrapClassLoader</code> 作为父类加载器。</p>
+</blockquote>
+<h4 id="toc_h4_41">3、垃圾回收算法</h4>
+<ul>
+<li>Mark-Sweep（标记-清除）算法<br>
+标记需要回收的对象，然后清除，会造成许多内存碎片。</li>
+<li>Copying（复制）算法<br>
+将内存分为两块，只使用一块，进行垃圾回收时，先将存活的对象复制到另一块区域，然后清空之前的区域。</li>
+<li>Mark-Compact（标记-整理）算法（压缩法）<br>
+与标记清除算法类似，但是在标记之后，将存活对象向一端移动，然后清除边界外的垃圾对象。</li>
+<li>Generational Collection（分代收集）算法<br>
+分为年轻代和老年代，年轻代时比较活跃的对象，使用复制算法做垃圾回收。老年代每次回收只回收少量对象，使用标记整理法。</li>
+</ul>
+<h4 id="toc_h4_42">4、典型垃圾回收器</h4>
+<ul>
+<li>
+<p>CMS</p>
+<ul>
+<li>简介<br>
+以获取最短回收停顿时间为目标的收集器，它是一种并发收集器，采用的是 Mark-Sweep 算法。</li>
+<li>场景<br>
+如果你的应用需要更快的响应，不希望有长时间的停顿，同时你的 CPU 资源也比较丰富，就适合适用 CMS 收集器。</li>
+<li>垃圾回收步骤</li>
+</ul>
+<ol>
+<li>初始标记 (Stop the World 事件 CPU 停顿， 很短) 初始标记仅标记一下 GC Roots 能直接关联到的对象，速度很快；</li>
+<li>并发标记 (收集垃圾跟用户线程一起执行) 并发标记过程就是进行 GC Roots 查找的过程；</li>
+<li>重新标记 (Stop the World 事件 CPU 停顿，比初始标记稍微长，远比并发标记短) 修正由于并发标记时应用运行产生变化的标记。</li>
+<li>并发清理，标记清除算法；</li>
+</ol>
+<ul>
+<li>缺点
+<ul>
+<li>并发标记时和应用程序同时进行，占用一部分线程，所以吞吐量有所下降。</li>
+<li>并发清除时和应用程序同时进行，这段时间产生的垃圾就要等下一次 GC 再清除。</li>
+<li>采用的标记清除算法，产生内存碎片，如果要新建大对象，会提前触发 Full GC 。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>G1</p>
+<ul>
+<li>简介<br>
+是一款面向服务端应用的收集器，它能充分利用多 CPU、多核环境。因此它是一款并行与并发收集器，并且它能建立可预测的停顿时间模型，即可以设置 STW 的时间。</li>
+<li>垃圾回收步骤<br>
+1、初始标记(stop the world 事件 CPU 停顿只处理垃圾)；<br>
+2、并发标记(与用户线程并发执行)；<br>
+3、最终标记(stop the world 事件 ,CPU 停顿处理垃圾)；<br>
+4、筛选回收(stop the world 事件 根据用户期望的 GC 停顿时间回收)</li>
+<li>特点
+<ul>
+<li>并发与并行<br>
+充分利用多核 CPU ，使用多核来缩短 STW 时间，部分需要停顿应用线程的操作，仍然可以通过并发保证应用程序的执行。</li>
+<li>分代回收<br>
+新生代，幸存带，老年代</li>
+<li>空间整合<br>
+总体看是采用标记整理算法回收，每个 Region 大小相等，通过复制来回收。</li>
+<li>可预测的停顿时间<br>
+使用 -XX:MaxGCPauseMillis=200 设置最长目标暂停值。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>在 Java 语言中，可作为 GC Roots 的对象包括 4 种情况：</p>
+</blockquote>
+<blockquote>
+<p>a) 虚拟机栈中引用的对象（栈帧中的本地变量表）；<br>
+b) 方法区中类静态属性引用的对象；<br>
+c) 方法区中常量引用的对象；<br>
+d) 本地方法栈中 Native 方法引用的对象。</p>
+</blockquote>
+<h3 id="toc_h3_43">五、MySQL （Inno DB）</h3>
+<h4 id="toc_h4_44">1、聚簇索引与非聚簇索引</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-41f97c8c.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>都使用 B+ 树作为数据结构</li>
+<li>聚簇索引中数据存在主键索引的叶子结点中，得到 key 即得到 data ；非聚簇索引的数据存在单独的空间。</li>
+<li>聚簇索引中辅助索引的叶子结点存的是主键；非聚簇索引中叶子结点存的是数据的地址；</li>
+<li>聚簇索引的优势是找到主键就找到数据，只需一次磁盘 IO ；当 B+ 树的结点发生变化时，地址也会发生变化，这时非聚簇索引需要更新所有的地址，增加开销。</li>
+</ul>
+<h4 id="toc_h4_45">2、为何使用 B 树做索引而不是红黑树？</h4>
+<p>索引很大，通常作为文件存储在磁盘上面，每次检索索引都需要把索引文件加载进内存，所以磁盘 IO 的次数是衡量索引数据结构好坏的重要指标。应用程序在从磁盘读取数据时，不只是读取需要的数据，还会连同其他数据以页的形式做预读来减少磁盘 IO 的次数。数据库的设计者将每个节点的大小设置为一页的大小，同时每次新建节点时都重新申请一个页，这样检索一个节点只需要一次 IO，根据索引定位到数据只需要 h- 1（h 为 B 树高度，根节点常驻内存） 次 IO，而 d (度，可以理解为宽度)与 h 称反比，即 d 越大，高度就越小，所以树越扁，磁盘 IO 次数越少，即渐进复杂度为 logdN ，这也是为什么不选择红黑树做索引的原因。前面可以得出结论，d 越大，索引的性能越好。节点由 key 和 data 组成，页的大小一定，key 和 data 越小，d 越大。B + 树去掉了节点内的 data 域，所以有更大的 d , 性能更好。</p>
+<h4 id="toc_h4_46">3、最左前缀原则</h4>
+<p>在 MySQL 中，可以指定多个列为索引，即联合索引。比如 index(name，age) ，最左前缀原则是指查询时精确匹配到从最左边开始的一列或几列（name；name&amp;age），就可以命中索引。如果所有列都用到了，顺序不同，查询引擎会自动优化为匹配联合索引的顺序，这样是能够命中索引的。</p>
+<h4 id="toc_h4_47">4、什么情况下可以用到 B 树索引</h4>
+<p>(1) 定义有主键的列一定要建立索引。因为主键可以加速定位到表中的某行</p>
+<p>(2) 定义有外键的列一定要建立索引。外键列通常用于表与表之间的连接，在其上创建索引可以加快表间的连接</p>
+<p>(3) 对于经常查询的数据列最好建立索引。</p>
+<p>① 对于需要在指定范围内快速或频繁查询的数据列，因为索引已经排序，其指定的范围是连续的，查询可以利用索引的排序，加快查询的时间</p>
+<p>② 经常用在 <code>where</code> 子句中的数据列，将索引建立在 <code>where</code> 子句的集合过程中，对于需要加速或频繁检索的数据列，可以让这些经常参与查询的数据列按照索引的排序进行查询，加快查询的时间。</p>
+<h4 id="toc_h4_48">5、事务隔离级别</h4>
+<ul>
+<li><strong>Read uncommitted</strong><br>
+读未提交，可能出现脏读，不可重复读，幻读。</li>
+<li><strong>Read committed</strong><br>
+读提交，可能出现不可重复读，幻读。</li>
+<li><strong>Repeatable read</strong><br>
+可重复读，可能出现脏读。</li>
+<li><strong>Serializable</strong><br>
+可串行化，同一数据读写都加锁，避免脏读，性能不忍直视。</li>
+</ul>
+<blockquote>
+<p>Inno DB 默认隔离级别为可重复读级别，分为快照度和当前读，并且通过行锁和间隙锁解决了幻读问题。</p>
+</blockquote>
+<h4 id="toc_h4_49">6、MVCC （多版本并发控制）</h4>
+<ul>
+<li>实现细节
+<ul>
+<li>每行数据都存在一个版本，每次数据更新时都更新该版本。</li>
+<li>修改时 Copy 出当前版本随意修改，各个事务之间互不干扰。</li>
+<li>保存时比较版本号，如果成功（commit），则覆盖原记录；失败则放弃 copy（rollback）。</li>
+</ul>
+</li>
+<li>Inno DB 实现</li>
+</ul>
+<blockquote>
+<p>在 InnoDB 中为每行增加两个隐藏的字段，分别是该行数据<strong>创建时的版本号</strong>和<strong>删除时的版本号</strong>，这里的版本号是系统版本号（可以简单理解为事务的 ID），每开始一个新的事务，系统版本号就自动递增，作为事务的 ID 。通常这两个版本号分别叫做创建时间和删除时间。</p>
+</blockquote>
+<p>详细参考：<a href="https://aysaml.com/articles/2020/01/04/1578137608006.html">《 脏读、幻读和不可重复读》</a></p>
+<h3 id="toc_h3_50">六、Spring 相关</h3>
+<h4 id="toc_h4_51">1、Bean 的作用域</h4>
+<table>
+<thead></thead>
+<tbody>
+<tr><td align="left">类别</td><td align="left">说明</td></tr>
+<tr><td align="left">singleton</td><td align="left">默认在 Spring 容器中仅存在一个实例</td></tr>
+<tr><td align="left">prototype</td><td align="left">每次调用 getBean() 都重新生成一个实例</td></tr>
+<tr><td align="left">request</td><td align="left">为每个 HTTP 请求生成一个实例</td></tr>
+<tr><td align="left">session</td><td align="left">同一个 HTTP session 使用一个实例，不同 session 使用不同实例</td></tr>
+</tbody>
+</table>
+<h4 id="toc_h4_52">2、Bean 生命周期</h4>
+<p>简单来说四步：</p>
+<ul>
+<li>
+<ol>
+<li>实例化 Instantiation</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>属性赋值 Populate</li>
+</ol>
+</li>
+<li>
+<ol start="3">
+<li>初始化 Initialization</li>
+</ol>
+</li>
+<li>
+<ol start="4">
+<li>销毁 Destruction</li>
+</ol>
+</li>
+</ul>
+<p>在这四步的基础上面，Spring 提供了一些拓展点：</p>
+<ul>
+<li><strong>Bean 自身的方法</strong>: 这个包括了 Bean 本身调用的方法和通过配置文件中 %3Cbean %3E 的 init-method 和 destroy-method 指定的方法</li>
+<li><strong>Bean 级生命周期接口方法</strong>: 这个包括了 BeanNameAware、BeanFactoryAware、InitializingBean 和 DiposableBean 这些接口的方法</li>
+<li><strong>容器级生命周期接口方法</strong>：这个包括了 InstantiationAwareBeanPostProcessor 和 BeanPostProcessor 这两个接口实现，一般称它们的实现类为“后处理器”。</li>
+<li><strong>工厂后处理器接口方法</strong>: 这个包括了 AspectJWeavingEnabler, ConfigurationClassPostProcessor, CustomAutowireConfigurer 等等非常有用的工厂后处理器接口的方法。工厂后处理器也是容器级的。在应用上下文装配配置文件之后立即调用。</li>
+</ul>
+<h4 id="toc_h4_53">3、Spring AOP</h4>
+<p>实现方式两种：</p>
+<ul>
+<li>JDK 动态代理：带有接口的对象，在运行期实现</li>
+<li>CGlib 静态代理：在编译期实现。</li>
+</ul>
+<h4 id="toc_h4_54">4、Spring 事务传播行为</h4>
+<p>默认 <strong>PROPAGATION_REQUIRED</strong> ，如果存在一个事务，则支持当前事务。如果没有事务则开启一个新的事务。</p>
+<p><img src="https://img.hacpai.com/file/2020/02/image-b9301da6.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4 id="toc_h4_55">5、Spring IoC</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-7bc23800.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4 id="toc_h4_56">6、Spring MVC 工作流程</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-52e69765.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt=""></p>
+<h3 id="toc_h3_57">七、计算机网络</h3>
+<h4 id="toc_h4_58">1、TCP/IP 五层模型</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-89734291.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4 id="toc_h4_59">2、浏览器输入地址后做了什么？</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-b769e36c.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4 id="toc_h4_60">3、三次握手与四次挥手</h4>
+<ul>
+<li>三次握手<br>
+<img src="https://img.hacpai.com/file/2020/02/image-cf67f43a.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></li>
+<li>四次挥手<br>
+<img src="https://img.hacpai.com/file/2020/02/image-8481d6e5.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></li>
+</ul>
+<h4 id="toc_h4_61">4、TIME_WAIT 与 CLOSE_WAIT</h4>
+<p><img src="https://img.hacpai.com/file/2020/02/image-fc69fc5f.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h4 id="toc_h4_62">5、TCP 滑动窗口</h4>
+<p>TCP 流量控制，主要使用<strong>滑动窗口协议</strong>，滑动窗口是接受数据端使用的窗口大小，用来告诉发送端接收端的缓存大小，以此可以控制发送端发送数据的大小，从而达到流量控制的目的。这个窗口大小就是我们一次传输几个数据。对所有数据帧按顺序赋予编号，发送方在发送过程中始终保持着一个发送窗口，只有落在发送窗口内的帧才允许被发送；同时接收方也维持着一个接收窗口，只有落在接收窗口内的帧才允许接收。</p>
+<h4 id="toc_h4_63">6、TCP 粘包和拆包</h4>
+<ul>
+<li>现象<br>
+<img src="https://img.hacpai.com/file/2020/02/image-4232d01a.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></li>
+<li>产生原因<br>
+1、要发送的数据大于 TCP 发送缓冲区剩余空间大小，将会发生拆包。<br>
+2、待发送数据大于 MSS（最大报文长度），TCP 在传输前将进行拆包。<br>
+3、要发送的数据小于 TCP 发送缓冲区的大小，TCP 将多次写入缓冲区的数据一次发送出去，将会发生粘包。<br>
+4、接收数据端的应用层没有及时读取接收缓冲区中的数据，将发生粘包。</li>
+<li>解决方式<br>
+1、发送端给每个数据包添加包首部，首部中应该至少包含数据包的长度，这样接收端在接收到数据后，通过读取包首部的长度字段，便知道每一个数据包的实际长度了。<br>
+2、发送端将每个数据包封装为固定长度（不够的可以通过补 0 填充），这样接收端每次从接收缓冲区中读取固定长度的数据就自然而然的把每个数据包拆分开来。<br>
+3、可以在数据包之间设置边界，如添加特殊符号，这样，接收端通过这个边界就可以将不同的数据包拆分开。</li>
+</ul>
+<h3 id="toc_h3_64">八、MQ 消息队列</h3>
+<h4 id="toc_h4_65">1、场景作用</h4>
+<p><strong>削峰填谷，异步解耦</strong>。</p>
+<h4 id="toc_h4_66">2、如何保证消息不被重复消费呢？</h4>
+<p>这个问题可以换个思路，保证消息重复消费，其实是保证程序的幂等性。无论消息如何重复，程序运行的结果是一致的。比如消费消息后做数据库插入操作，为了防止消息重复消费，可以在插入前先查询一下有没有对应的数据。</p>
+<h4 id="toc_h4_67">3、怎么保证从消息队列里拿到的数据按顺序执行？</h4>
+<p>消费端在接收到消息后放入内存队列，然后对队列中的消息进行有序消费。</p>
+<h4 id="toc_h4_68">4、如何解决消息队列的延时以及过期失效问题？消息队列满了以后该怎么处理？有几百万消息持续积压几小时，说说怎么解决？</h4>
+<p>消息过期失效问题，如果消息一段时间不消费，导致过期失效了，消息就丢失了，只能重新查出丢失的消息，重新发送。<br>
+再来说消息积压的问题：（思路是快速消费掉积压的消息）</p>
+<ul>
+<li>首先排查消费端问题，恢复消费端正常消费速度。</li>
+<li>然后着手处理队列中的积压消息。
+<ul>
+<li>停掉现有的 consumer。</li>
+<li>新建一个 topic ，设置之前 10 倍的 partation，之前 10 倍的队列。</li>
+<li>写一个分发程序，将积压的消息均匀的轮询写入这些队列。</li>
+<li>然后临时用 10 倍的机器部署 consumer，每一批 consumer 消费 1 个临时的队列。</li>
+<li>消费完毕后，恢复原有架构。</li>
+</ul>
+</li>
+</ul>
+<p>消息队列满了：只能边接收边丢弃，然后重新补回丢失的消息，再做消费。</p>
+<h4 id="toc_h4_69">4、如何保证消息的可靠性传输（如何处理消息丢失的问题）？</h4>
+<p>kafka 为例：</p>
+<ul>
+<li>消费者丢了数据：<br>
+每次消息消费后，由自动提交 offset 改为手动提交 offset 。</li>
+<li>kafka 丢了消息：<br>
+比较常见的一个场景，就是 kafka 某个 broker 宕机，然后重新选举 partition 的 leader 时。要是此时其他的 follower 刚好还有些数据没有同步，结果此时 leader 挂了，然后大家选举某个 follower 成为 leader 之后，不就少了一些数据。
+<ul>
+<li>给 topic 设置<strong>replication.factor</strong>参数：这个值必须大于 1，要求每个 partition 必须有至少两个副本。</li>
+<li>在 kafka 服务端设置<strong>min.insync.replicas</strong>参数：这个值必须大于 1，这个是要求一个 leader 至少感知到有至少一个 follower 还跟自己保持联系，没掉队，这样才能确保 leader 挂了还有一个 follower。</li>
+<li>在 producer 端设置<strong>acks=all</strong>：这个是要求每条数据，必须是写入所有 replica 之后，才能认为是写成功了。</li>
+<li>在 producer 端设置<strong>retries=MAX</strong>（很大很大很大的一个值，无限次重试的意思）：这个是要求一旦写入失败，就无限重试，卡在这里。</li>
+</ul>
+</li>
+<li>生产者丢了消息：<br>
+如果按照上述的思路设置了 ack=all，一定不会丢，要求是，你的 leader 接收到消息，所有的 follower 都同步到了消息之后，才认为本次写成功了。如果没满足这个条件，生产者会自动不断的重试，重试无限次。</li>
+</ul>
+<h3 id="toc_h3_70">九、Redis</h3>
+<h4 id="toc_h4_71">1、数据类型</h4>
+<ul>
+<li>String</li>
+</ul>
+<blockquote>
+<p>常用命令： set,get,decr,incr,mget 等。</p>
+</blockquote>
+<ul>
+<li>Hash</li>
+</ul>
+<blockquote>
+<p>常用命令： hget,hset,hgetall 等</p>
+</blockquote>
+<ul>
+<li>List</li>
+</ul>
+<blockquote>
+<p>常用命令： lpush,rpush,lpop,rpop,lrange 等</p>
+</blockquote>
+<p>可以通过 lrange 命令，就是从某个元素开始读取多少个元素，可以基于 list 实现分页查询。</p>
+<ul>
+<li>Set</li>
+</ul>
+<blockquote>
+<p>常用命令： sadd,spop,smembers,sunion 等</p>
+</blockquote>
+<ul>
+<li>Sort Set</li>
+</ul>
+<blockquote>
+<p>常用命令： zadd,zrange,zrem,zcard 等</p>
+</blockquote>
+<h4 id="toc_h4_72">2、Redis 如何实现 key 的过期删除？</h4>
+<blockquote>
+<p>定期删除和惰性删除的形式。</p>
+</blockquote>
+<ul>
+<li>定期删除<br>
+Redis 每隔一段时间从设置过期时间的 key 集合中，随机抽取一些 key ，检查是否过期，如果已经过期做删除处理。</li>
+<li>惰性删除<br>
+Redis 在 key 被访问的时候检查 key 是否过期，如果过期则删除。</li>
+</ul>
+<h4 id="toc_h4_73">3、Redis 的持久化机制</h4>
+<blockquote>
+<p>数据快照（RDB）+ 修改数据语句文件（AOF）</p>
+</blockquote>
+<h4 id="toc_h4_74">4、如何解决 Redis 缓存雪崩和缓存穿透？</h4>
+<ul>
+<li>
+<p>缓存雪崩<br>
+缓存同一时间大面积的失效，所以，后面的请求都会落到数据库上，造成数据库短时间内承受大量请求而崩掉。</p>
+<ul>
+<li>解决方式
+<ul>
+<li>事前：保证 Redis 集群的稳定性，发现机器宕机尽快补上，设置合适的内存淘汰策略。</li>
+<li>事中：本地缓存 + 限流降级，避免大量请求落在数据库上。</li>
+<li>事后：利用 Redis 持久化机制尽快恢复缓存。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>缓存穿透<br>
+一般是黑客故意去请求缓存中不存在的数据，导致所有的请求都落到数据库上，造成数据库短时间内承受大量请求而崩掉。</p>
+<ul>
+<li>解决方式<br>
+将不存在的数据列举到一个足够大的 map 上，这样遭到攻击时，直接拦截 map 中的请求，请求到数据库上面。或是把不存在的也做缓存，值为 null ，设置过期时间。</li>
+</ul>
+</li>
+</ul>
+<h4 id="toc_h4_75">5、如何使用 Redis 实现消息队列？</h4>
+<p>Redis 实现消息队列依赖于 Redis 集群的稳定性，通常不建议使用。</p>
+<ul>
+<li>Redis 自带发布订阅功能，基于 publish 和 subscribe 命令。</li>
+<li>使用 List 存储消息，lpush，rpop 分别发送接收消息。</li>
+</ul>
+<h3 id="toc_h3_76">十、Nginx</h3>
+<blockquote>
+<p>Nginx 是一款轻量级的 Web 服务器/反向代理服务器及电子邮件（IMAP/POP3）代理服务器。 Nginx 主要提供反向代<br>
+理、负载均衡、动静分离(静态资源服务)等服务。</p>
+</blockquote>
+<h4 id="toc_h4_77">1、正向代理和反向代理</h4>
+<ul>
+<li>正向代理<br>
+代理客户端访问服务器。典型：VPN</li>
+<li>反向代理<br>
+代替服务器接收客户端请求，然后转发给服务器，服务器接收请求并将处理的结果通过代理服务器转发给客户端。</li>
+</ul>
+<h4 id="toc_h4_78">2、负载均衡</h4>
+<blockquote>
+<p>将请求分摊到多台机器上去，高并发，增加吞吐量。</p>
+</blockquote>
+<ul>
+<li>负载均衡算法
+<ul>
+<li>权重轮询</li>
+<li>fair</li>
+<li>ip_hash</li>
+<li>url_hash</li>
+</ul>
+</li>
+</ul>
+<h4 id="toc_h4_79">3、动静分离</h4>
+<p>动静分离是让动态网站里的动态网页根据一定规则把不变的资源和经常变的资源区分开来，动静资源做好了拆分以后，我们就可以根据静态资源的特点将其做缓存操作，这就是网站静态化处理的核心思路。</p>
+<h4 id="toc_h4_80">4、Nginx 四个组成部分</h4>
+<ul>
+<li>Nginx 二进制可执行文件：由各模块源码编译出一个文件</li>
+<li>Nginx.conf 配置文件：控制 Nginx 行为</li>
+<li>acess.log 访问日志： 记录每一条 HTTP 请求信息</li>
+<li>error.log 错误日志：定位问题</li>
+</ul>
+                    <div>
+                        <hr>
+
+标题：Java 面试知识总结回顾<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/interview.html" target="_blank">https://aysaml.github.io/interview.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h3">
+            <a href="#toc_h3_0">一、Java 基础知识</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_1">1、Object 类相关方法</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_2">2、基本数据类型</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_3">3、序列化</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_4">4、String、StringBuffer、StringBuilder</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_5">5、重载与重写</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_6">6、final</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_7">7、反射</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_8">8、JDK 动态代理</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_9">9、Java IO</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_10">二、Java 集合框架</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_11">1、List（线性结构）</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_12">2、Map（K，V 对）</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_13">3、Set（唯一值）</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_14">三、Java 多线程</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_15">1、synchronized</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_16">2、Lock</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_17">3、volatile</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_18">4、线程的五种状态</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_19">1). New</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_20">2). Runnable</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_21">3). Blocked</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_22">4). Waiting（无限期等待）</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_23">5). Timed Waiting（有期限等待）</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_24">6). Terminated</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_25">5、 wait() 与 sleep()</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_26">6、 yield()</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_27">7、 join()</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_28">9、线程使用方式</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_29">10、Runnable 和 Callable 比较</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_30">11、hapens-before</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_31">12、ThreadLocal</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_32">8、线程池</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_33">1)、分类</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_34">2)、线程池的几个重要参数</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_35">3)、线程池线程工作过程</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_36">4)、线程池拒绝策略（默认抛出异常）</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_37">5)、如何根据 CPU 核心数设计线程池线程数量</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_38">四、Java 虚拟机</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_39">1、Java 内存结构</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_40">2、Java 类加载机制</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_41">3、垃圾回收算法</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_42">4、典型垃圾回收器</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_43">五、MySQL （Inno DB）</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_44">1、聚簇索引与非聚簇索引</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_45">2、为何使用 B 树做索引而不是红黑树？</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_46">3、最左前缀原则</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_47">4、什么情况下可以用到 B 树索引</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_48">5、事务隔离级别</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_49">6、MVCC （多版本并发控制）</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_50">六、Spring 相关</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_51">1、Bean 的作用域</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_52">2、Bean 生命周期</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_53">3、Spring AOP</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_54">4、Spring 事务传播行为</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_55">5、Spring IoC</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_56">6、Spring MVC 工作流程</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_57">七、计算机网络</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_58">1、TCP/IP 五层模型</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_59">2、浏览器输入地址后做了什么？</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_60">3、三次握手与四次挥手</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_61">4、TIME_WAIT 与 CLOSE_WAIT</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_62">5、TCP 滑动窗口</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_63">6、TCP 粘包和拆包</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_64">八、MQ 消息队列</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_65">1、场景作用</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_66">2、如何保证消息不被重复消费呢？</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_67">3、怎么保证从消息队列里拿到的数据按顺序执行？</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_68">4、如何解决消息队列的延时以及过期失效问题？消息队列满了以后该怎么处理？有几百万消息持续积压几小时，说说怎么解决？</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_69">4、如何保证消息的可靠性传输（如何处理消息丢失的问题）？</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_70">九、Redis</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_71">1、数据类型</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_72">2、Redis 如何实现 key 的过期删除？</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_73">3、Redis 的持久化机制</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_74">4、如何解决 Redis 缓存雪崩和缓存穿透？</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_75">5、如何使用 Redis 实现消息队列？</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_76">十、Nginx</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_77">1、正向代理和反向代理</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_78">2、负载均衡</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_79">3、动静分离</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_80">4、Nginx 四个组成部分</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1581503256565"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1581503256565",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1581503256565",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1581503256565', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 24ms, 2020/07/29 15:41:16 -->

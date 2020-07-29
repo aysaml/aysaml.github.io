@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>Dubbo系列笔记之特殊示例用法 - 码恋</title><meta name="description" content="本篇主要说明在使用 Dubbo 时除了进行简单的 RPC 调用外，Dubbo 还提供了哪些增强功能来帮助开发者更好的实现服务调用。"/><meta property="og:description" content="本篇主要说明在使用 Dubbo 时除了进行简单的 RPC 调用外，Dubbo 还提供了哪些增强功能来帮助开发者更好的实现服务调用。"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="Dubbo系列笔记之特殊示例用法 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2019/12/14/1576312634579.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="Dubbo系列笔记之特殊示例用法 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2019/12/14/1576312634579.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="一文带你整明白Java的N种锁" href="https://aysaml.github.io/articles/2019/11/21/1433223.html">
+            <link rel="next" title="Dubbo系列笔记之SPI实现" href="https://aysaml.github.io/articles/2019/12/17/1576579214365.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">Dubbo系列笔记之特殊示例用法</div>
+<div class="article__share"
+     data-title="Dubbo系列笔记之特殊示例用法"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2019/12/14/1576312634579.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2019-12-17
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/dubbo">dubbo</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                Dubbo系列笔记之特殊示例用法
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20181214.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20181214.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<p>注：本文是对 Dubbo 官方文档的示例部分整理而成。</p>
+<h2 id="toc_h2_0">一、引言</h2>
+<p>日常使用 Dubbo 一般来说仅仅使用了其服务远程调用的最基础功能，其他的额外功能例如参数验证、结果缓存、异步、回调等都需要各服务自己去处理。</p>
+<p>其实在使用 Dubbo 的时候，除了 RPC ，Dubbo 还为我们提供了很多的增强功能和特性。学习技术是一个 <strong>怎么用-&gt;会用-&gt;用好-&gt;不够用自己加</strong> 的一个过程。在会用的基础上，逐渐走向用好。用好的前提一部分除了对 Dubbo 本身的特殊功能的了解使用，还有其底层的工作逻辑也是一部分。So，在对 Dubbo 的工作逻辑进行深入了解前，在本篇，先来看看 Dubbo 为我们提供了哪些额外福利吧？</p>
+<h2 id="toc_h2_1">二、调优扩展类</h2>
+<ul>
+<li>
+<h3>启动时检查</h3>
+<ul>
+<li>说明：
+<ul>
+<li>默认情况，Dubbo 在启动时会检查依赖的服务是否正常可用，如果不可用时抛出异常，阻止 Spring 容器的初始化过程，以便在上线前及时发现问题。</li>
+<li>在消费者中可以对 <strong>没有服务提供者</strong> 进行检查；在注册中心中可以对 <strong>注册订阅失败</strong> 操作时进行检查。</li>
+</ul>
+</li>
+<li>方式：<br>
+通过 <code>check="true/false"</code> 指定是否开启启动检查。</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/preflight-check.html" target="_blank">《Dubbo示例-启动检查》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>集群容错</h3>
+<ul>
+<li>
+<p>说明：</p>
+<ul>
+<li>一个服务可能有多个提供者，这些提供者构成服务集群。如果被调用的服务提供者服务挂掉或异常时，可以根据需求通过设置集群的容错模式来适应不同的错误处理方式。</li>
+<li>Dubbo 提供了多种容错模式，默认为 Failover Cluster 模式，即通过重试的方式来进行处理，可以通过 <code>retries="2"</code> 来设置重试次数。</li>
+</ul>
+</li>
+<li>
+<p>方式：<br>
+通过 <code>cluster="failsafe"</code> 指定集群容错模式。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/fault-tolerent-strategy.html" target="_blank">《Dubbo示例-集群容错》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>负载均衡</h3>
+<ul>
+<li>
+<p>说明：</p>
+<ul>
+<li>Dubbo 提供了多种负载均衡策略，为消费者实现了软负载均衡。</li>
+</ul>
+</li>
+<li>
+<p>方式：<br>
+通过<code>loadbalance="roundrobin"</code>指定负载均衡策略。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/loadbalance.html" target="_blank">《Dubbo示例-负载均衡》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>线程模型</h3>
+<ul>
+<li>说明：
+<ul>
+<li>如果事件处理的逻辑能迅速完成，并且不会发起新的 IO 请求，比如只是在内存中记个标识，则直接在 IO 线程上处理更快，因为减少了线程池调度。</li>
+<li>但如果事件处理逻辑较慢，或者需要发起新的 IO 请求，比如需要查询数据库，则必须派发到线程池，否则 IO 线程阻塞，将导致不能接收其它请求。</li>
+<li>Dubbo 提供了不同的派发策略和不同的线程池配置来应对不同的场景。</li>
+</ul>
+</li>
+<li>方式：<br>
+通过<code>dispatcher="all"</code> 和 <code>threadpool="fixed"</code> 分别来设置不同的分发策略和线程池配置。</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/thread-model.html" target="_blank">《Dubbo示例-线程模型》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>多协议</h3>
+<ul>
+<li>
+<p>说明：<br>
+Dubbo 允许配置多协议，在不同服务上支持不同协议或者同一服务上同时支持多种协议。</p>
+<ul>
+<li>不同服务在性能上适用不同协议进行传输，比如大数据用短连接协议，小数据大并发用长连接协议。</li>
+<li>需要与 http 客户端互操作。</li>
+</ul>
+</li>
+<li>
+<p>方式：<br>
+配置多个协议，不同服务可以通过<code>protocol="dubbo,hessian"</code>的方式来指定暴露服务的协议。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/multi-protocols.html" target="_blank">《Dubbo示例-多协议》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>多注册中心</h3>
+<ul>
+<li>
+<p>说明：<br>
+Dubbo 支持同一服务向多注册中心同时注册，或者不同服务分别注册到不同的注册中心上去，甚至可以同时引用注册在不同注册中心上的同名服务。</p>
+</li>
+<li>
+<p>方式：<br>
+可以配置多个注册中心，然后通过 <code>registry="xxxRegistry"</code>的方式制定注册中心。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/multi-registry.html" target="_blank">《Dubbo示例-多注册中心》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>服务分组</h3>
+<ul>
+<li>
+<p>说明：<br>
+一个接口有不同的实现，可以通过指定 group 来进行区分。</p>
+</li>
+<li>
+<p>方式：<br>
+通过<code>group="member"</code>区分不同实现。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="dubbo.apache.org/zh-cn/docs/user/demos/service-group.html" target="_blank">《Dubbo示例-服务分组》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>多版本</h3>
+<ul>
+<li>
+<p>说明：<br>
+当一个接口出现不兼容的升级时，可用通过版本号的方式来解决。</p>
+</li>
+<li>
+<p>方式：<br>
+不同版本的服务通过<code>version="1.0.0"</code>来指定不同的版本号，版本号不同的服务之间相互不引用。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/multi-versions.html" target="_blank">《Dubbo示例-多版本》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>分组聚合</h3>
+<ul>
+<li>
+<p>说明：<br>
+当一个服务有多个分组时，可以对调用结果进行聚合。</p>
+</li>
+<li>
+<p>方式：<br>
+<code>&lt;dubbo:reference interface="com.xxx.MenuService" group="*" merger="true" /&gt;</code></p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/group-merger.html" target="_blank">《Dubbo示例-分组聚合》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>参数验证</h3>
+<ul>
+<li>
+<p>说明：<br>
+Dubbo 提供了基于<a href="https://jcp.org/en/jsr/detail?id=303" target="_blank">JSR303</a>标准的验证 annotation，并通过声明 filter 来实现验证。</p>
+</li>
+<li>
+<p>使用方式参见<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/parameter-validation.html" target="_blank">《Dubbo示例-参数验证》</a></p>
+</li>
+</ul>
+</li>
+<li>
+<h3>结果缓存</h3>
+<ul>
+<li>
+<p>说明：<br>
+用于加速热门数据的访问速度，Dubbo 提供声明式缓存，以减少用户加缓存的工作量。</p>
+</li>
+<li>
+<p>方式：<br>
+通过指定服务调用者的 <code>cache="lru"</code> 来选择缓存的策略。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/result-cache.html" target="_blank">《Dubbo示例-结果缓存》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>上下文信息：</h3>
+<ul>
+<li>
+<p>说明：<br>
+Dubbo 使用 ThreadLocal 维护了一个名为 RpcContext 的上下文信息。</p>
+</li>
+<li>
+<p>方式：<br>
+可以通过<code>RpcContext</code>获得服务的上下文信息。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/context.html" target="_blank">《Dubbo示例-上下文信息》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>隐式参数</h3>
+<ul>
+<li>
+<p>说明：<br>
+可以通过 Dubbo 的上下文对象设置隐式参数，后面的远程调用都会隐式将这些参数发送到服务器端。</p>
+</li>
+<li>
+<p>方式：<br>
+在服务消费方端设置隐式参数</p>
+</li>
+</ul>
+<p><code>setAttachment</code> 设置的 KV 对，在完成下面一次远程调用会被清空，即多次远程调用要多次设置。</p>
+<pre><code class="language-xml">	RpcContext.getContext().setAttachment("index", "1"); // 隐式传参，后面的远程调用都会隐式将这些参数发送到服务器端，类似cookie，用于框架集成，不建议常规业务使用
+	xxxService.xxx(); // 远程调用
+	// ...
+</code></pre>
+<p>在服务提供方端获取隐式参数</p>
+<pre><code class="language-java">	public class XxxServiceImpl implements XxxService {
+
+	  public void xxx() {
+    	// 获取客户端隐式传入的参数，用于框架集成，不建议常规业务使用
+   	 String index = RpcContext.getContext().getAttachment("index"); 
+	 	}
+	}
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/attachment.html" target="_blank">《Dubbo示例-隐式参数》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>Consumer 异步调用</h3>
+<ul>
+<li>
+<p>说明：</p>
+<ul>
+<li>Dubbo 支持异步编程，从v2.7.0开始，Dubbo的所有异步编程接口开始以<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html" target="_blank">CompletableFuture</a>为基础。</li>
+<li>基于 NIO 的非阻塞实现并行调用，客户端不需要启动多线程即可完成并行调用多个远程服务，相对多线程开销较小。</li>
+</ul>
+</li>
+<li>
+<p>方式：<br>
+需要服务提供者事先定义CompletableFuture签名的服务，具体参见<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/async-execute-on-provider.html" target="_blank">服务端异步执行</a>接口定义：</p>
+</li>
+</ul>
+<pre><code class="language-java">	public interface AsyncService {
+	    CompletableFuture&lt;String&gt; sayHello(String name);
+	}
+</code></pre>
+<p>注意接口的返回类型是<code>CompletableFuture&lt;String&gt;</code>。</p>
+<p>XML引用服务：</p>
+<pre><code class="language-xml">	&lt;dubbo:reference id="asyncService" timeout="10000" interface="com.alibaba.dubbo.samples.async.api.AsyncService"/&gt;
+</code></pre>
+<p>调用远程服务：</p>
+<pre><code class="language-java">	// 调用直接返回CompletableFuture
+	CompletableFuture&lt;String&gt; future = asyncService.sayHello("async call request");
+	// 增加回调
+	future.whenComplete((v, t) -&gt; {
+	    if (t != null) {
+	        t.printStackTrace();
+	    } else {
+	        System.out.println("Response: " + v);
+	    }
+	});
+	// 早于结果输出
+	System.out.println("Executed before response return.");
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/async-call.html" target="_blank">Dubbo示例-Consumer 异步调用》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>Provider异步执行</h3>
+<ul>
+<li>
+<p>说明：<br>
+Provider端异步执行将阻塞的业务从 Dubbo 内部线程池切换到业务自定义线程，避免Dubbo线程池的过度占用，有助于避免不同服务间的互相影响。异步执行无益于节省资源或提升RPC响应性能，因为如果业务执行需要阻塞，则始终还是要有线程来负责执行。</p>
+</li>
+<li>
+<p>方式：</p>
+</li>
+</ul>
+<h4>定义CompletableFuture签名的接口</h4>
+<p>服务接口定义：</p>
+<pre><code class="language-java">	public interface AsyncService {
+	    CompletableFuture&lt;String&gt; sayHello(String name);
+	}
+</code></pre>
+<p>服务实现：</p>
+<pre><code class="language-java">	public class AsyncServiceImpl implements AsyncService {
+	   @Override
+	    public CompletableFuture&lt;String&gt; sayHello(String name) {
+	        RpcContext savedContext = RpcContext.getContext();
+	        // 建议为supplyAsync提供自定义线程池，避免使用JDK公用线程池
+	        return CompletableFuture.supplyAsync(() -&gt; {
+	            System.out.println(savedContext.getAttachment("consumer-key1"));
+	            try {
+	                Thread.sleep(5000);
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+	            return "async response from provider.";
+	        });
+	    }
+	}
+</code></pre>
+<p>通过<code>return CompletableFuture.supplyAsync()</code>，业务执行已从Dubbo线程切换到业务线程，避免了对Dubbo线程池的阻塞。</p>
+<h4>使用AsyncContext</h4>
+<p>Dubbo提供了一个类似Serverlet 3.0的异步接口<code>AsyncContext</code>，在没有CompletableFuture签名接口的情况下，也可以实现Provider端的异步执行。</p>
+<p>服务接口定义：</p>
+<pre><code class="language-java">	public interface AsyncService {
+	    String sayHello(String name);
+	}
+
+</code></pre>
+<p>服务暴露，和普通服务完全一致：</p>
+<pre><code class="language-xml">	&lt;bean id="asyncService" class="org.apache.dubbo.samples.governance.impl.AsyncServiceImpl"/&gt;
+	&lt;dubbo:service interface="org.apache.dubbo.samples.governance.api.AsyncService" ref="asyncService"/&gt;
+
+</code></pre>
+<p>服务实现：</p>
+<pre><code class="language-java">	public class AsyncServiceImpl implements AsyncService {
+	    public String sayHello(String name) {
+	        final AsyncContext asyncContext = RpcContext.startAsync();
+	        new Thread(() -&gt; {
+	            // 如果要使用上下文，则必须要放在第一句执行
+	            asyncContext.signalContextSwitch();
+	            try {
+	                Thread.sleep(500);
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+	            // 写回响应
+	            asyncContext.write("Hello " + name + ", response from provider.");
+	        }).start();
+	        return null;
+	    }
+	}
+
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/async-execute-on-provider.html" target="_blank">《Dubbo示例-Provider异步执行》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>本地调用</h3>
+<ul>
+<li>说明：
+<ul>
+<li>本地调用使用了 injvm 协议，是一个伪协议，它不开启端口，不发起远程调用，只在 JVM 内直接关联，但执行 Dubbo 的 Filter 链。</li>
+<li>从 <code>2.2.0</code> 开始，每个服务默认都会在本地暴露。在引用服务的时候，默认优先引用本地服务。如果希望引用远程服务可以使用一下配置强制引用远程服务。</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-xml">	&lt;dubbo:reference ... scope="remote" /&gt;
+
+</code></pre>
+<ul>
+<li>方式：<br>
+可以通过设置服务的协议为 injvm 来实现本地调用。</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/local-call.html" target="_blank">《Dubbo示例-本地调用》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>参数回调</h3>
+<ul>
+<li>
+<p>说明：<br>
+Dubbo 将基于长连接生成反向代理，这样就可以从服务器端调用客户端逻辑。</p>
+</li>
+<li>
+<p>方式：<br>
+由服务提供者自行实现 Listener ，并添加相关配置：</p>
+</li>
+</ul>
+<pre><code class="language-java">	bean id="callbackService" class="com.callback.impl.CallbackServiceImpl" /&gt;
+	&lt;dubbo:service interface="com.callback.CallbackService" ref="callbackService" connections="1" callbacks="1000"&gt;
+	    &lt;dubbo:method name="addListener"&gt;
+	        &lt;dubbo:argument index="1" callback="true" /&gt;
+	        &lt;!--也可以通过指定类型的方式--&gt;
+	        &lt;!--&lt;dubbo:argument type="com.demo.CallbackListener" callback="true" /&gt;--&gt;
+	    &lt;/dubbo:method&gt;
+	&lt;/dubbo:service&gt;
+
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/callback-parameter.html" target="_blank">《Dubbo示例-参数回调》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>事件通知</h3>
+<ul>
+<li>
+<p>说明：<br>
+在调用之前、调用之后、出现异常时，会触发 <code>oninvoke</code>、<code>onreturn</code>、<code>onthrow</code> 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。</p>
+</li>
+<li>
+<p>方式：<br>
+自定义Callback 接口及实现，并在消费者中配置相应的事件处理，onreturn = "demoCallback.onreturn" 。</p>
+</li>
+</ul>
+<pre><code class="language-xml">	&lt;bean id ="demoCallback" class = "org.apache.dubbo.callback.implicit.NofifyImpl" /&gt;
+	&lt;dubbo:reference id="demoService" interface="org.apache.dubbo.callback.implicit.IDemoService" version="1.0.0" group="cn" &gt;
+	      &lt;dubbo:method name="get" async="true" onreturn = "demoCallback.onreturn" onthrow="demoCallback.onthrow" /&gt;
+	&lt;/dubbo:reference&gt;
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/events-notify.html" target="_blank">《Dubbo示例-事件通知》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>本地存根</h3>
+<ul>
+<li>说明：<br>
+远程服务后，客户端通常只剩下接口，而实现全在服务器端，但提供方有些时候想在客户端也执行部分逻辑，比如：做 ThreadLocal 缓存，提前验证参数，调用失败后伪造容错数据等等，此时就需要在 API 中带上 Stub，客户端生成 Proxy 实例，会把 Proxy 通过构造函数传给 Stub，然后把 Stub 暴露给用户，Stub 可以决定要不要去调 Proxy。</li>
+</ul>
+<p><img src="https://img.hacpai.com/file/2019/12/图片-c1460def.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="图片.png"></p>
+<ul>
+<li>方式：<br>
+在 spring 配置文件中按以下方式配置：</li>
+</ul>
+<pre><code class="language-xml">	&lt;dubbo:service interface="com.foo.BarService" stub="true" /&gt;
+
+</code></pre>
+<p>或</p>
+<pre><code class="language-xml">	&lt;dubbo:service interface="com.foo.BarService" stub="com.foo.BarServiceStub" /&gt;
+</code></pre>
+<p>提供 Stub 的实现 <a href="http://dubbo.apache.org/zh-cn/docs/user/demos/local-stub.html#fn2" target="_blank">[2]</a>：</p>
+<pre><code class="language-java">	package com.foo;
+	public class BarServiceStub implements BarService {
+	private final BarService barService;
+
+	// 构造函数传入真正的远程代理对象
+	 public BarServiceStub(BarService barService){
+   		 this.barService = barService;
+	   }
+
+	 public String sayHello(String name) {
+    	// 此代码在客户端执行, 你可以在客户端做ThreadLocal本地缓存，或预先验证参数是否合法，等等
+    	try {
+       	 return barService.sayHello(name);
+    	} catch (Exception e) {
+       	 // 你可以容错，可以做任何AOP拦截事项
+       	 return "容错数据";
+   	 		}
+		}
+	}
+
+</code></pre>
+<ul>
+<li>注意：</li>
+</ul>
+<ol>
+<li>Stub 必须有可传入 Proxy 的构造函数。</li>
+<li>在 interface 旁边放一个 Stub 实现，它实现 BarService 接口，并有一个传入远程 BarService 实例的构造函数。</li>
+</ol>
+</li>
+<li>
+<h3>本地伪装</h3>
+<ul>
+<li>
+<p>说明：<br>
+本地伪装通常用与服务降级，比如说统一鉴权的所有服务提供者全挂了之后，可以在客户端本地伪装返回一个健全失败的消息。</p>
+</li>
+<li>
+<p>方式：<br>
+在 spring 配置文件中按以下方式配置：</p>
+</li>
+</ul>
+<pre><code class="language-xml">	&lt;dubbo:reference interface="com.foo.BarService" mock="true" /&gt;
+
+</code></pre>
+<p>或</p>
+<pre><code class="language-xml">	&lt;dubbo:reference interface="com.foo.BarService" mock="com.foo.BarServiceMock" /&gt;
+
+</code></pre>
+<p>在工程中提供 Mock 实现 <a href="http://dubbo.apache.org/zh-cn/docs/user/demos/local-mock.html#fn2" target="_blank">[2]</a>：</p>
+<pre><code class="language-java">	package com.foo;
+	public class BarServiceMock implements BarService {
+	    public String sayHello(String name) {
+	        // 你可以伪造容错数据，此方法只在出现RpcException时被执行
+	        return "容错数据";
+	    }
+	}
+
+</code></pre>
+<p>如果服务的消费方经常需要 try-catch 捕获异常，如：</p>
+<pre><code class="language-java">	Offer offer = null;
+	try {
+	    offer = offerService.findOffer(offerId);
+	} catch (RpcException e) {
+	   logger.error(e);
+	}
+
+</code></pre>
+<p>请考虑改为 Mock 实现，并在 Mock 实现中 return null。如果只是想简单的忽略异常，在 <code>2.0.11</code> 以上版本可用：</p>
+<pre><code class="language-xml">	&lt;dubbo:reference interface="com.foo.BarService" mock="return null" /&gt;
+
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/local-mock.html" target="_blank">《Dubbo示例-本地伪装》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>延迟暴露</h3>
+<ul>
+<li>
+<p>说明：<br>
+如果服务在注册前需要有一些比较耗时的初始化操作，可以使用 Dubbo 的延迟暴露功能。</p>
+</li>
+<li>
+<p>方式：<br>
+在服务提供者中配置延迟暴露的时间<code>delay="5000"</code>。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/delay-publish.html" target="_blank">《Dubbo示例-延迟暴露》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>并发控制</h3>
+<ul>
+<li>
+<p>说明：<br>
+Dubbo 可以从客户端、服务端维度对接口和方法级别进行并发控制，限制每个方法执行的最大线程数量。</p>
+</li>
+<li>
+<p>方式：<br>
+在服务提供者配置并发数量和规则：</p>
+<ul>
+<li>限制服务端并发执行不超过10</li>
+</ul>
+<pre><code class="language-xml">	&lt;dubbo:service interface="com.foo.BarService" executes="10" /&gt;
+</code></pre>
+<ul>
+<li>限制每个客户端的执行并发数量不超过10</li>
+</ul>
+<pre><code class="language-xml">	&lt;dubbo:service interface="com.foo.BarService" actives="10" /&gt;
+
+</code></pre>
+<p>或</p>
+<pre><code class="language-xml">	&lt;dubbo:reference interface="com.foo.BarService" actives="10" /&gt;
+
+</code></pre>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/concurrency-control.html" target="_blank">《Dubbo示例-并发控制》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>连接控制</h3>
+<ul>
+<li>
+<p>说明：<br>
+Dubbo 可以设置服务器端接受的连接数和客户端使用的连接数。</p>
+</li>
+<li>
+<p>方式：</p>
+<ul>
+<li>服务端连接数量控制：<br>
+限制服务器端接受的连接不能超过 10 个：</li>
+</ul>
+<pre><code class="language-xml">	&lt;dubbo:provider protocol="dubbo" accepts="10" /&gt;
+</code></pre>
+<p>或</p>
+<pre><code class="language-xml">	&lt;dubbo:protocol name="dubbo" accepts="10" /&gt;
+</code></pre>
+<ul>
+<li>客户端连接数量控制：<br>
+限制客户端服务使用连接不能超过 10 个 <a href="http://dubbo.apache.org/zh-cn/docs/user/demos/config-connections.html#fn2" target="_blank">[2]</a>：</li>
+</ul>
+<pre><code class="language-xml">	&lt;dubbo:reference interface="com.foo.BarService" connections="10" /&gt;
+</code></pre>
+<p>或</p>
+<pre><code class="language-xml">	&lt;dubbo:service interface="com.foo.BarService" connections="10" /&gt;
+</code></pre>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/config-connections.html" target="_blank">《Dubbo示例-连接控制》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>延迟连接</h3>
+<ul>
+<li>
+<p>说明：<br>
+针对使用 dubbo 协议暴露的服务，使用延迟连接可以减少长连接的连接数，等到调用时再创建连接。</p>
+</li>
+<li>
+<p>方式：<br>
+dubbo 协议属性<code>lazy="true"</code><br>
+<code>&lt;dubbo:protocol name="dubbo" lazy="true" /&gt;</code></p>
+</li>
+</ul>
+</li>
+<li>
+<h3>粘滞连接</h3>
+<ul>
+<li>
+<p>说明：</p>
+<ul>
+<li>粘滞连接用于有状态服务，尽可能让客户端总是向同一提供者发起调用，除非该提供者挂了，再连另一台。</li>
+<li>粘滞连接将自动开启延迟连接，以减少长连接数。</li>
+<li>支持消费者和方法级别的配置。</li>
+</ul>
+</li>
+<li>
+<p>方式：<br>
+使用 <code>sticky="true"</code> 开启粘滞连接。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/stickiness.html" target="_blank">《Dubbo示例-粘滞连接》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>令牌验证：</h3>
+<ul>
+<li>
+<p>说明：<br>
+Dubbo 提供了令牌验证的功能，用来防止消费者绕过注册中心直接访问服务提供者。</p>
+</li>
+<li>
+<p>方式：<br>
+在服务提供者侧通过设置<code>token="true"</code>或者指定密码<code>token="123456"</code>开启令牌验证。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="dubbo.apache.org/zh-cn/docs/user/demos/token-authorization.html" target="_blank">《Dubbo示例-令牌验证》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>路由规则</h3>
+<ul>
+<li>说明：<br>
+Dubbo 支持灵活的配置路由规则，详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/routing-rule.html" target="_blank">《Dubbo示例-路由规则》</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="toc_h2_2">三、测试开发类</h2>
+<ul>
+<li>
+<h3>直连提供者</h3>
+<ul>
+<li>
+<p>说明：<br>
+在开发测试阶段，我们想直接调用某个服务提供者，不希望走注册中心。</p>
+</li>
+<li>
+<p>方式：<br>
+通过<code>url="dubbo://localhost:20890"</code>配置点对点直连。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/explicit-target.html" target="_blank">《Dubbo示例-直连提供者》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>只订阅</h3>
+<ul>
+<li>
+<p>说明：<br>
+在开发测试阶段，通常只有一个注册中心，如果一个正在开发的服务提供者注册，可能会影响其他消费者。Dubbo 提供了服务是否注册的开关。</p>
+</li>
+<li>
+<p>方式：<br>
+通过<code>register="false"</code> 对服务是否注册进行控制。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/subscribe-only.html" target="_blank">《Dubbo示例-只订阅》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>只注册</h3>
+<ul>
+<li>
+<p>说明：<br>
+多个注册中心时，可以根据实际情况来选择是否从注册中心订阅服务。</p>
+</li>
+<li>
+<p>方式：<br>
+通过<code>subscribe="false"</code>对注册中心是否订阅服务来进行控制。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/registry-only.html" target="_blank">《Dubbo示例-只注册》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>静态服务</h3>
+<ul>
+<li>
+<p>说明：</p>
+<ul>
+<li>可以人工控制服务的上下线，此时将注册中心设置为非动态管理模式。</li>
+<li>服务提供者初次注册时为禁用状态，需人工启用。断线时，将不会被自动删除，需人工禁用。</li>
+<li>如果是一个第三方服务提供者，比如 memcached，可以直接向注册中心写入提供者地址信息，消费者正常使用。</li>
+</ul>
+</li>
+<li>
+<p>方式：<br>
+通过<code>dynamic="false"</code> 设置注册中心的非动态管理模式。</p>
+</li>
+</ul>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/static-service.html" target="_blank">《Dubbo示例-静态服务》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>泛化引用</h3>
+<ul>
+<li>
+<p>说明：<br>
+泛化接口调用方式主要用于客户端没有 API 接口及模型类元的情况，参数及返回值中的所有 POJO 均用 <code>Map</code> 表示，通常用于框架集成。</p>
+</li>
+<li>
+<p>方式：<br>
+在 Spring 配置申明 <code>generic="true"</code></p>
+</li>
+</ul>
+<pre><code class="language-xml">	  &lt;dubbo:reference id="barService" interface="com.foo.BarService" generic="true" /&gt;  
+</code></pre>
+<p>在 Java 代码获取 barService 并开始泛化调用：</p>
+<pre><code class="language-java">	GenericService barService = (GenericService) applicationContext.getBean("barService");
+	Object result = barService.$invoke("sayHello", new String[] { "java.lang.String" }, new Object[] { "World" });
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/generic-reference.html" target="_blank">《Dubbo示例-泛化引用》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>泛化实现</h3>
+<p>-说明：<br>
+泛接口实现方式主要用于服务器端没有API接口及模型类元的情况，参数及返回值中的所有POJO均用Map表示，通常用于框架集成，比如：实现一个通用的远程服务Mock框架，可通过实现GenericService接口处理所有服务请求。</p>
+<ul>
+<li>方式：<br>
+在 Java 代码中实现 <code>GenericService</code> 接口：</li>
+</ul>
+<pre><code class="language-java">	package com.foo;
+	public class MyGenericService implements GenericService {
+
+	    public Object $invoke(String methodName, String[] parameterTypes, Object[] args) throws GenericException {
+	        if ("sayHello".equals(methodName)) {
+	            return "Welcome " + args[0];
+	        }
+	    }
+	}
+
+</code></pre>
+<p>在 Spring 配置申明服务的实现：</p>
+<pre><code class="language-xml">	&lt;bean id="genericService" class="com.foo.MyGenericService" /&gt;
+	&lt;dubbo:service interface="com.foo.BarService" ref="genericService" /&gt;
+
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/generic-service.html" target="_blank">《Dubbo示例-泛化实现》</a></p>
+</blockquote>
+</li>
+<li>
+<h3>回声测试</h3>
+<ul>
+<li>
+<p>说明：<br>
+回声测试用于检测服务是否可用，回声测试按照正常请求流程执行，能够测试整个调用是否通畅，可用于监控。</p>
+</li>
+<li>
+<p>方式:<br>
+所有服务自动实现 <code>EchoService</code> 接口，只需将任意服务引用强制转型为 <code>EchoService</code>，即可使用。</p>
+</li>
+</ul>
+<p>Spring 配置：</p>
+<pre><code class="language-xml">	&lt;dubbo:reference id="memberService" interface="com.xxx.MemberService" /&gt;
+
+</code></pre>
+<p>代码：</p>
+<pre><code class="language-java">	// 远程服务引用
+	MemberService memberService = ctx.getBean("memberService"); 
+
+	EchoService echoService = (EchoService) memberService; // 强制转型为EchoService
+
+	// 回声测试可用性
+	String status = echoService.$echo("OK"); 
+
+	assert(status.equals("OK"));
+
+</code></pre>
+<blockquote>
+<p>详细参考：<a href="http://dubbo.apache.org/zh-cn/docs/user/demos/echo-service.html" target="_blank">《Dubbo示例-回声测试》</a></p>
+</blockquote>
+</li>
+</ul>
+<hr>
+<p>关于配置更加详细的说明，参考 Dubbo 官方文档 <a href="http://dubbo.apache.org/zh-cn/docs/user/references/xml/introduction.html" target="_blank">schema 配置参考手册</a></p>
+                    <div>
+                        <hr>
+
+标题：Dubbo系列笔记之特殊示例用法<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2019/12/14/1576312634579.html" target="_blank">https://aysaml.github.io/articles/2019/12/14/1576312634579.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h2">
+            <a href="#toc_h2_0">一、引言</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_1">二、调优扩展类</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_2">三、测试开发类</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1576312634579"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1576312634579",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1576312634579",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1576312634579', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 35ms, 2020/07/29 15:41:16 -->

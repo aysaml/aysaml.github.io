@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>解决BeanCurrentlyInCreationException&&its raw version as part of a circular reference, but has eventually been wrapped. - 码恋</title><meta name="description" content="报错信息 ts raw version as part of a circular reference, but has eventually been wrapped."/><meta property="og:description" content="报错信息 ts raw version as part of a circular reference, but has eventually been wrapped."/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="解决BeanCurrentlyInCreationException&&its raw version as part of a circular reference, but has eventually been wrapped. - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2019/10/12/1570874240846.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="解决BeanCurrentlyInCreationException&&its raw version as part of a circular reference, but has eventually been wrapped. - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2019/10/12/1570874240846.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="ConcurrentHashMap锁的前世今生" href="https://aysaml.github.io/articles/2019/10/08/1570531723657.html">
+            <link rel="next" title="设计模式系列之单例模式" href="https://aysaml.github.io/articles/2019/10/14/1571040307396.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">解决BeanCurrentlyInCreationException&&its raw version as part of a circular reference, but has eventually been wrapped.</div>
+<div class="article__share"
+     data-title="解决BeanCurrentlyInCreationException&&its raw version as part of a circular reference, but has eventually been wrapped."
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2019/10/12/1570874240846.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2019-10-12
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/spring">spring</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                解决BeanCurrentlyInCreationException&&its raw version as part of a circular reference, but has eventually been wrapped.
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20190426.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20190426.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h2 id="toc_h2_0">报错信息</h2>
+<details>
+<summary> its raw version as part of a circular reference, but has eventually been wrapped.</summary>
+严重: Exception sending context initialized event to listener instance of class org.springframework.web.context.ContextLoaderListener
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'departmentController': Injection of resource dependencies failed; nested exception is org.springframework.beans.factory.BeanCurrentlyInCreationException: Error creating bean with name 'roleServiceImpl': Bean with name 'xxxService' has been injected into other beans [xxxService] in its raw version as part of a circular reference, but has eventually been wrapped. This means that said other beans do not use the final version of the bean. This is often the result of over-eager type matching - consider using 'getBeanNamesOfType' with the 'allowEagerInit' flag turned off, for example.
+    at org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.postProcessPropertyValues(CommonAnnotationBeanPostProcessor.java:307)
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1185)
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:537)
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:475)
+    at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:304)
+    at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:228)
+    at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:300)
+    at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:195)
+    at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:703)
+    at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:760)
+    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:482)
+    at org.springframework.web.context.ContextLoader.configureAndRefreshWebApplicationContext(ContextLoader.java:403)
+    at org.springframework.web.context.ContextLoader.initWebApplicationContext(ContextLoader.java:306)
+    at org.springframework.web.context.ContextLoaderListener.contextInitialized(ContextLoaderListener.java:106)
+    at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4853)
+    at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5314)
+    at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:145)
+    at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:753)
+    at org.apache.catalina.core.ContainerBase.access$000(ContainerBase.java:131)
+    at org.apache.catalina.core.ContainerBase$PrivilegedAddChild.run(ContainerBase.java:153)
+    at org.apache.catalina.core.ContainerBase$PrivilegedAddChild.run(ContainerBase.java:143)
+    at java.security.AccessController.doPrivileged(Native Method)
+    at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:727)
+    at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:717)
+    at org.apache.catalina.startup.HostConfig.deployDescriptor(HostConfig.java:587)
+    at org.apache.catalina.startup.HostConfig$DeployDescriptor.run(HostConfig.java:1798)
+    at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+    at java.util.concurrent.FutureTask.run(Unknown Source)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+    at java.lang.Thread.run(Unknown Source)
+Caused by: org.springframework.beans.factory.BeanCurrentlyInCreationException: Error creating bean with name 'roleServiceImpl': Bean with name 'roleServiceImpl' has been injected into other beans [userServiceImpl] in its raw version as part of a circular reference, but has eventually been wrapped. This means that said other beans do not use the final version of the bean. This is often the result of over-eager type matching - consider using 'getBeanNamesOfType' with the 'allowEagerInit' flag turned off, for example.
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:568)
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:475)
+    at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:304)
+    at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:228)
+    at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:300)
+    at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:195)
+    at org.springframework.beans.factory.support.DefaultListableBeanFactory.findAutowireCandidates(DefaultListableBeanFactory.java:1017)
+    at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:960)
+    at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:858)
+    at org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.autowireResource(CommonAnnotationBeanPostProcessor.java:441)
+    at org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.getResource(CommonAnnotationBeanPostProcessor.java:419)
+    at org.springframework.context.annotation.CommonAnnotationBeanPostProcessor$ResourceElement.getResourceToInject(CommonAnnotationBeanPostProcessor.java:544)
+    at org.springframework.beans.factory.annotation.InjectionMetadata$InjectedElement.inject(InjectionMetadata.java:155)
+    at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:87)
+    at org.springframework.context.annotation.CommonAnnotati
+···
+</details>
+<h2 id="toc_h2_1">原因</h2>
+<p>如报错信息，spring循环依赖问题，在代理时出现版本不一致。</p>
+<h2 id="toc_h2_2">解决方式</h2>
+<ol>
+<li>重构代码</li>
+</ol>
+<blockquote>
+<p>这是最直接，也是比较合理的解决方式。</p>
+</blockquote>
+<p>查看错误信息中出现的bean，检查相应代码是否有相互引用的情况。如出现A引用B，B又引用A，或者A-&gt;B-&gt;C-&gt;A等情况，抽出多次注入的bean被调用的方法到一个新的服务中。</p>
+<p>2.<code>@lazy</code>注解</p>
+<p>在其他bean中使用循环注入的bean时，使用<code>@lazy</code>注解，如下。</p>
+<pre><code class="language-java">
+@Autowired
+@Lazy
+private XXXService xxxService;
+
+</code></pre>
+<blockquote>
+<p>通常不建议这样做，这样在任何地方如果要注入该bean时，就要加注解。</p>
+</blockquote>
+<ol start="3">
+<li>作用域改为scope="prototype"</li>
+</ol>
+<blockquote>
+<p>spring对循环依赖的处理：<br>
+①构造器的循环依赖：这种依赖spring是处理不了的，直接抛出BeanCurrentlylnCreationException异常。<br>
+②单例模式下的setter循环依赖：通过“三级缓存”处理循环依赖。<br>
+③非单例循环依赖：无法处理。</p>
+</blockquote>
+<h2 id="toc_h2_3">常见出现场景</h2>
+<p>1.使用<code>@Async</code>时</p>
+<p>会出现这样的情况，没有使用异步调用的注解之前，程序正常启动执行。使用<code>@Async</code>后，出现上述错误。原因是spring在加载完循环依赖后，因为加了 <code>@Async</code> 注解，需要将这个 bean代理一次，但是在此之前这个bean已经被其他Bean做了注入，且注入的是没有被代理过的版本，导致版本不一致。</p>
+<p>2.使用AOP时需要代理的场景</p>
+<h2 id="toc_h2_4">详解spring循环依赖</h2>
+<p>首先我们从bean的生命周期入手：</p>
+<p>spring单例对象的初始化大略分为三步：</p>
+<ol>
+<li>createBeanInstance：实例化，其实也就是调用对象的构造方法实例化对象</li>
+<li>populateBean：填充属性，这一步主要是多bean的依赖属性进行填充</li>
+<li>initializeBean：调用spring xml中的init 方法。</li>
+</ol>
+<p>这里再贴一张bean的生命周期图：</p>
+<p><img src="https://img.hacpai.com/file/2019/09/beanall-708c8625.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt=""></p>
+<p>从上面讲述的单例bean初始化步骤我们可以知道，循环依赖主要发生在第一、第二步。也就是构造器循环依赖和field循环依赖。 接下来，我们具体看看spring是如何处理三种循环依赖的。</p>
+<h4 id="toc_h4_5">1、构造器循环依赖</h4>
+<p>this .singletonsCurrentlylnCreation.add(beanName）将当前正要创建的bean 记录在缓存中 Spring 容器将每一个正在创建的bean 标识符放在一个“当前创建bean 池”中， bean 标识 柏：在创建过程中将一直保持在这个池中，因此如果在创建bean 过程中发现自己已经在“当前 创建bean 池” 里时，将抛出BeanCurrentlylnCreationException 异常表示循环依赖；而对于创建 完毕的bean 将从“ 当前创建bean 池”中清除掉。</p>
+<h4 id="toc_h4_6">2、setter循环依赖</h4>
+<p>Spring为了解决单例的循环依赖问题，使用了三级缓存。</p>
+<pre><code class="language-java">/** Cache of singleton objects: bean name –&gt; bean instance */
+private final Map singletonObjects = new ConcurrentHashMap(256);
+/** Cache of singleton factories: bean name –&gt; ObjectFactory */
+private final Map&gt; singletonFactories = new HashMap&gt;(16);
+/** Cache of early singleton objects: bean name –&gt; bean instance */
+private final Map earlySingletonObjects = new HashMap(16);
+
+</code></pre>
+<p>这三级缓存的作用分别是：</p>
+<p>singletonFactories ： 进入实例化阶段的单例对象工厂的cache （三级缓存）</p>
+<p>earlySingletonObjects ：完成实例化但是尚未初始化的，提前暴光的单例对象的Cache （二级缓存）</p>
+<p>singletonObjects：完成初始化的单例对象的cache（一级缓存）</p>
+<p>我们在创建bean的时候，会首先从cache中获取这个bean，这个缓存就是sigletonObjects。主要的调用方法是：</p>
+<pre><code class="language-java">protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+    Object singletonObject = this.singletonObjects.get(beanName);
+    //isSingletonCurrentlyInCreation()判断当前单例bean是否正在创建中
+    if (singletonObject == null &amp;&amp; isSingletonCurrentlyInCreation(beanName)) {
+        synchronized (this.singletonObjects) {
+            singletonObject = this.earlySingletonObjects.get(beanName);
+            //allowEarlyReference 是否允许从singletonFactories中通过getObject拿到对象
+            if (singletonObject == null &amp;&amp; allowEarlyReference) {
+                ObjectFactory&lt;?&gt; singletonFactory = this.singletonFactories.get(beanName);
+                if (singletonFactory != null) {
+                    singletonObject = singletonFactory.getObject();
+                    //从singletonFactories中移除，并放入earlySingletonObjects中。
+                    //其实也就是从三级缓存移动到了二级缓存
+                    this.earlySingletonObjects.put(beanName, singletonObject);
+                    this.singletonFactories.remove(beanName);
+                }
+            }
+        }
+    }
+    return (singletonObject != NULL_OBJECT ? singletonObject : null);
+}
+
+</code></pre>
+<p>从上面三级缓存的分析，我们可以知道，Spring解决循环依赖的诀窍就在于singletonFactories这个三级cache。这个cache的类型是ObjectFactory，定义如下：</p>
+<pre><code class="language-java">public interface ObjectFactory&lt;T&gt; {
+    T getObject() throws BeansException;
+}
+
+</code></pre>
+<p>这个接口在AbstractBeanFactory里实现，并在核心方法doCreateBean（）引用下面的方法:</p>
+<pre><code class="language-java">protected void addSingletonFactory(String beanName, ObjectFactory&lt;?&gt; singletonFactory) {
+    Assert.notNull(singletonFactory, "Singleton factory must not be null");
+    synchronized (this.singletonObjects) {
+        if (!this.singletonObjects.containsKey(beanName)) {
+            this.singletonFactories.put(beanName, singletonFactory);
+            this.earlySingletonObjects.remove(beanName);
+            this.registeredSingletons.add(beanName);
+        }
+    }
+}
+</code></pre>
+<p>这段代码发生在createBeanInstance之后，populateBean（）之前，也就是说单例对象此时已经被创建出来(调用了构造器)。这个对象已经被生产出来了，此时将这个对象提前曝光出来，让大家使用。</p>
+<p>这样做有什么好处呢？让我们来分析一下“A的某个field或者setter依赖了B的实例对象，同时B的某个field或者setter依赖了A的实例对象”这种循环依赖的情况。A首先完成了初始化的第一步，并且将自己提前曝光到singletonFactories中，此时进行初始化的第二步，发现自己依赖对象B，此时就尝试去get(B)，发现B还没有被create，所以走create流程，B在初始化第一步的时候发现自己依赖了对象A，于是尝试get(A)，尝试一级缓存singletonObjects(肯定没有，因为A还没初始化完全)，尝试二级缓存earlySingletonObjects（也没有），尝试三级缓存singletonFactories，由于A通过ObjectFactory将自己提前曝光了，所以B能够通过ObjectFactory.getObject拿到A对象(虽然A还没有初始化完全，但是总比没有好呀)，B拿到A对象后顺利完成了初始化阶段1、2、3，完全初始化之后将自己放入到一级缓存singletonObjects中。此时返回A中，A此时能拿到B的对象顺利完成自己的初始化阶段2、3，最终A也完成了初始化，进去了一级缓存singletonObjects中，而且更加幸运的是，由于B拿到了A的对象引用，所以B现在hold住的A对象完成了初始化。</p>
+<h4 id="toc_h4_7">3、非单例循环依赖</h4>
+<p>对于“prototype”作用域bean, Spring 容器无法完成依赖注入，因为Spring 容器不进行缓 存“prototype”作用域的bean ，因此无法提前暴露一个创建中的bean 。</p>
+<p>参考：<a href="https://juejin.im/post/5c98a7b4f265da60ee12e9b2" target="_blank">spring是如何解决循环依赖的?</a></p>
+                    <div>
+                        <hr>
+
+标题：解决BeanCurrentlyInCreationException&&its raw version as part of a circular reference, but has eventually been wrapped.<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2019/10/12/1570874240846.html" target="_blank">https://aysaml.github.io/articles/2019/10/12/1570874240846.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h2">
+            <a href="#toc_h2_0">报错信息</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_1">原因</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_2">解决方式</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_3">常见出现场景</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_4">详解spring循环依赖</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_5">1、构造器循环依赖</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_6">2、setter循环依赖</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_7">3、非单例循环依赖</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1570874240846"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1570874240846",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1570874240846",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1570874240846', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 20ms, 2020/07/29 15:41:17 -->

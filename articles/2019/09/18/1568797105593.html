@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>Dubbo系列笔记之XML配置文件解析流程 - 码恋</title><meta name="description" content="简单叨叨一下Dubbo是如何自定义标签给spring承载bean的。"/><meta property="og:description" content="简单叨叨一下Dubbo是如何自定义标签给spring承载bean的。"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="Dubbo系列笔记之XML配置文件解析流程 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2019/09/18/1568797105593.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="Dubbo系列笔记之XML配置文件解析流程 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2019/09/18/1568797105593.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="通过Nginx代理实现https方式访问网站" href="https://aysaml.github.io/articles/2019/09/18/1568791365834.html">
+            <link rel="next" title="Java 8系列之重新认识HashMap" href="https://aysaml.github.io/articles/2019/10/08/1570516580009.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">Dubbo系列笔记之XML配置文件解析流程</div>
+<div class="article__share"
+     data-title="Dubbo系列笔记之XML配置文件解析流程"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2019/09/18/1568797105593.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2019-10-15
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/spring">spring</a> &nbsp;
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/dubbo">dubbo</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                Dubbo系列笔记之XML配置文件解析流程
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20171222.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20171222.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<p>简单叨叨一下Dubbo是如何自定义标签给spring承载bean的。</p>
+<hr>
+<p><em>Spring通过XML解析程序将其解析为DOM树，通过NamespaceHandler指定对应的Namespace的BeanDefinitionParser将其转换成BeanDefinition。再通过Spring自身的功能对BeanDefinition实例化对象。Dubbo做的只是实现了NamespaceHandler解析成BeanDefinition。</em></p>
+<hr>
+<p>好了，总结起来就这么简单，下面我们具体来看一下。</p>
+<h3 id="toc_h3_0">一、约束文件schema</h3>
+<p>下面是一个标准的文件头的格式</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-6b664f7b.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>首先自定义的标签会有一些约束规范，比如我自定义的有哪几种标签，标签里面有哪些属性等等，在XML中每个命名空间都会有一个.xsd的约束文件。</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-3f7d6add.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>一个约束文件.xsd长得像下面这样</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-8d09a69a.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>里面限制自定义的标签里面有哪些属性，属性的类型是什么啊这种。</p>
+<h3 id="toc_h3_1">二、spring.handlers和spring.schemas</h3>
+<p>当spring解析xml时遇到自定义的标签时，会调用<code>BeanDefinitionParserDelegate.parseCustomElement(...)</code>方法，如下：</p>
+<p><img src="https://img.hacpai.com/file/2019/10/image-46a193d2.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>可以看到接下来通过<code>DefaultNamespaceHandlerResolver.resolve(String namespaceUri)</code>获得对应的Dubbo处理器。这个namespaceUri就是bubbo的命名空间uri，spring会去查找名字为spring.handlers的文件，里边配置了命名空间对应的handler，如下面：</p>
+<p>spring会加载spring.handlers和spring.schemas这两个文件，两个文件长下面这样</p>
+<pre><code>❀  spring.schemas：里面指定了该标签的约束文件本地路径，在解析XML文件时将XSD重定向到本地文件，避免在解析XML文件时需要上网下载XSD文件。通过实现org.xml.sax.EntityResolver接口来实现该功能。
+</code></pre>
+<p><img src="https://img.hacpai.com/file/2019/09/image-6c64b430.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<pre><code>❀ spring.handlers：里面指定了由那个handler去处理这些自定义的标签，实现一个handler需要实现org.springframework.beans.factory.xml.NamespaceHandler接口，或使用org.springframework.beans.factory.xml.NamespaceHandlerSupport的子类。
+</code></pre>
+<p><img src="https://img.hacpai.com/file/2019/09/image-caee5098.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h3 id="toc_h3_2">三、DubboNamespaceHandler</h3>
+<p>在spring加载完spring.handlers后就知道要通过DubboNamespaceHandler去解析<a href="dubbo:xxx" target="_blank">dubbo:xxx</a>这种dubbo的标签。</p>
+<p>下面我们来看一下，它长这个样子</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-d0ec9d01.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>通过上面代码我们可以知道，解析标签的工作并不是namespaceHandler去做的，它做的只是为每个标签注册BeanDefinitionParser，告诉spring哪个BeanDefinitionParser去真正处理这个标签。</p>
+<h3 id="toc_h3_3">四、DubboBeanDefinitionParser</h3>
+<p>下面我们简单来看一下DubboBeanDefinitionParser长什么样，嗯，大概就下面这个样子吧</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-aa25897c.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>在解析标签时spring会调用BeanDefinitionParser的parse()方法去生成一个BeanDefinition。</p>
+<p>我们注意到，parse()方法有两个参数Element element和ParserContext parserContext，element是xml解析器在解析完xml标签后将其组装成一个这样的对象，而第二个参数parserContext，我们通过他的getRegistry()方法获取BeanDefinitionRegistry对象。他长下面这个样</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-b4881922.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>说到这里，那么我们解析配置的初衷是什么呢？</p>
+<p>没错，我们为了把配置解析成bean去交给spring托管。</p>
+<p>而BeanDefinitionRegistry的作用主要是向spring注册表中注册 BeanDefinition 实例，通过调用其registerBeanDefinition()方法完成注册的过程。</p>
+<p>简单看一下BeanDefinitionRegistry长什么样子</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-13a284dd.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>可以看到BeanDefinitionRegistry是一个接口，它定义了一些注册BeanDefinition的一些必要方法。</p>
+<p>那么具体BeanDefinitionRegistry是如何注册bean的呢？</p>
+<p>我们看一下它的registerBeanDefinition(String var1, BeanDefinition var2)，第一个参数是bean的id，第二个就是BeanDefinition，BeanDefinition描述了一个bean的画像，他是基础的bean定义接口。由他衍生出AbstractBeanDefinition和RootBeanDefinition。</p>
+<h3 id="toc_h3_4">五、BeanDefinition</h3>
+<ul>
+<li>AbstractBeanDefinition</li>
+</ul>
+<p>他长得挺长的，主要是在BeanDefinition的基础上定义了一些属性，基本囊括了Bean实例化需要的所有信息。如下，</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-21e61600.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>总体来看这个抽象类长了这些东西：</p>
+<ol>
+<li>Bean的描述信息（例如是否是抽象类、是否单例）</li>
+<li>depends-on属性（String类型，不是Class类型）</li>
+<li>自动装配的相关信息</li>
+<li>init函数、destroy函数的名字（String类型）</li>
+<li>工厂方法名、工厂类名（String类型，不是Class类型）</li>
+<li>构造函数形参的值</li>
+<li>被IOC容器覆盖的方法</li>
+<li>Bean的属性以及对应的值（在初始化后会进行填充）</li>
+</ol>
+<ul>
+<li>RootBeanDefinition</li>
+</ul>
+<p>从spring2.5开始，spring一开始都是使用GenericBeanDefinition类保存Bean的相关信息，在需要时，在将其转换为其他的BeanDefinition类型。</p>
+<p>这里两个BeanDefinition可以说是互补的关系，</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-2ee4f31c.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>我们可以在源码中看到，RootBeanDefinition继承了AbstractBeanDefinition，在其基础上面定义了更多属性。从上图可以看到第一个属性BeanDefinitionHolder，那么这个BeanDefinitionHolder是什么东西呢，</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-b3407664.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>它保存了bean的名字、别名、以及BeanDefinition持有的bean的一些基础信息。</p>
+<p>总结一下：</p>
+<ol>
+<li>定义了id、别名与Bean的对应关系（BeanDefinitionHolder）</li>
+<li>Bean的注解（AnnotatedElement）</li>
+<li>具体的工厂方法（Class类型），包括工厂方法的返回类型，工厂方法的Method对象</li>
+<li>构造函数、构造函数形参类型</li>
+<li>Bean的class对象</li>
+</ol>
+<p>那么我这里我们就大概了解了一些BeanDefinition里面有什么东西，那回到上面问题，bean具体是怎么注册的呢？</p>
+<h3 id="toc_h3_5">六、BeanDefinitionRegistry</h3>
+<p>在上面我们简单看了一下BeanDefinitionRegistry这个接口中有一些方法。下面我们来着重看一下注册方法是怎么实现的<code>void registerBeanDefinition(String var1, BeanDefinition var2) throws BeanDefinitionStoreException;</code>。点开这个方法的实现，我们可以看到spring中它有三个实现，如下图，</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-69b98695.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>我们分别看一下这三个类怎么实现的：</p>
+<ol>
+<li>DefaultListableBeanFactory</li>
+</ol>
+<p><img src="https://img.hacpai.com/file/2019/09/image-2487ff1f.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>首先，是做了一下校验，判断，看要注册的bean是否已经存在了等等。注意到它有两个关键的成员变量：</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-6e32c45c.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>其中beanDefinitionMap这个ConcurrentHashMap注册表，而beanDefinitionNames显而易见是beanName的集合。</p>
+<p>观察到，注册bean的最重要步骤就是<code>this.beanDefinitionMap.put(beanName, beanDefinition);</code>。</p>
+<ol start="2">
+<li>GenericApplicationContext</li>
+</ol>
+<p>再来看一下BeanDefinitionRegistry的第二个实现类GenericApplicationContext：</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-c1b7eef4.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>注册bean的代码实现只有一行，可以看到他只是调用了上面DefaultListableBeanFactory的注册方法。</p>
+<ol start="3">
+<li>SimpleBeanDefinitionRegistry</li>
+</ol>
+<p>最后一个，SimpleBeanDefinitionRegistry。它是这样的一个东西：</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-e8fa3d54.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>比较关键的一句就是红框所示。</p>
+<p>这样下来，我们知道，注册bean最关键的就是往注册表的ConcurrentHashMap中put进去bean的name和BeanDefinition。</p>
+<h3 id="toc_h3_6">七、bean的实例化</h3>
+<p>到这里为止，我们由Dubbo的xml配置文件解析，延伸到了spring如何注册bean。那么纵观bean的整个生命周期，bean的初始化可以说是为bean的一生埋下了种子，那么最后我们再看看bean初始化的另一个动作---bean注册后是如何被实例化的。附一张bean生命周期全图，顺便看看bean宝宝长大了都要做一些什么:</p>
+<p><img src="https://img.hacpai.com/file/2019/09/beanall-708c8625.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="beanall.png"></p>
+<p>其实在spring源码的BeanFactory注释的头伊始，就已经说明了bean的生命周期：</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-a2c573aa.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>好了，言归正传，这次写的篇幅可能有点长，最后我们快点叨叨一下bean的实例化过程吧。</p>
+<p>在此之前，我们和bean的注册结合起来，其实bean的初始化就相当于一个造书的过程。解析配置信息时相当于我们要写一本书时，先有书的内容，这些配置信息就是bean的内容。有了书的内容后，我们要把内容写在一页一页的纸上，相当于一个个bean的一个个属性，而这些“纸”合起来就是BeanDefinition。然后我们要把这些稿纸给到工厂，那就要有一个人去保存这些纸了，这个人就是bean的注册表。在这个人手里每一堆稿纸都对应一个书名，就是bean的名字，这样我们就完成了bean的注册过程。接下来就是要把这些稿纸交给工厂去装订成一本真正的书，那这个过程就是bean的实例化。</p>
+<ul>
+<li>bean什么时候会实例化？</li>
+</ul>
+<p>这里我们再做一个延伸，spring bean在什么时候会进行实例化呢？</p>
+<p>第一：如果你使用BeanFactory作为Spring Bean的工厂类，则所有的bean都是在第一次使用该Bean的时候实例化</p>
+<p>第二：如果你使用ApplicationContext作为Spring Bean的工厂类，则又分为以下几种情况：</p>
+<pre><code>   （1）：如果bean的scope是singleton的，并且lazy-init为false（默认是false，所以可以不用设置），则ApplicationContext启动的时候就实例化该Bean，并且将实例化的Bean放在一个map结构的缓存中，下次再使用该Bean的时候，直接从这个缓存中取   
+
+   （2）：如果bean的scope是singleton的，并且lazy-init为true，则该Bean的实例化是在第一次使用该Bean的时候进行实例化   
+
+   （3）：如果bean的scope是prototype的，则该Bean的实例化是在第一次使用该Bean的时候进行实例化
+</code></pre>
+<ul>
+<li>bean的实例化过程</li>
+</ul>
+<p>一张图说明，</p>
+<p><img src="https://img.hacpai.com/file/2019/09/beanshilihua-d2ada44a.jpg?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="beanshilihua.jpg"></p>
+<p>在本文的最后，放一张Spring容器从加载配置文件到创建出一个完整Bean的作业流程：</p>
+<p><img src="https://img.hacpai.com/file/2019/09/image-52750fe5.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<hr>
+<p>通则达济天下，谋则远虑古今。</p>
+                    <div>
+                        <hr>
+
+标题：Dubbo系列笔记之XML配置文件解析流程<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2019/09/18/1568797105593.html" target="_blank">https://aysaml.github.io/articles/2019/09/18/1568797105593.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h3">
+            <a href="#toc_h3_0">一、约束文件schema</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_1">二、spring.handlers和spring.schemas</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_2">三、DubboNamespaceHandler</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_3">四、DubboBeanDefinitionParser</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_4">五、BeanDefinition</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_5">六、BeanDefinitionRegistry</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_6">七、bean的实例化</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1568797105593"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1568797105593",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1568797105593",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1568797105593', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 57ms, 2020/07/29 15:41:17 -->

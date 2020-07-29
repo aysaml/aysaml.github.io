@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>设计模式系列之单例模式 - 码恋</title><meta name="description" content="最近看了一些框架的底层源码，了解了其中令人惊叹的设计模式，愈发感觉一个好的设计会给我们的代码带来多么灵活的扩展性。 所以决定近期把各类设计模式好好整理一下，形成知识体系。而这篇要说的是比较入门的单例模式。"/><meta property="og:description" content="最近看了一些框架的底层源码，了解了其中令人惊叹的设计模式，愈发感觉一个好的设计会给我们的代码带来多么灵活的扩展性。 所以决定近期把各类设计模式好好整理一下，形成知识体系。而这篇要说的是比较入门的单例模式。"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="设计模式系列之单例模式 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2019/10/14/1571040307396.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="设计模式系列之单例模式 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2019/10/14/1571040307396.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="解决BeanCurrentlyInCreationException&&its raw version as part of a circular reference, but has eventually been wrapped." href="https://aysaml.github.io/articles/2019/10/12/1570874240846.html">
+            <link rel="next" title="设计模式系列之工厂模式" href="https://aysaml.github.io/articles/2019/10/14/1571053845203.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">设计模式系列之单例模式</div>
+<div class="article__share"
+     data-title="设计模式系列之单例模式"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2019/10/14/1571040307396.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2019-10-15
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">设计模式</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                设计模式系列之单例模式
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20180815.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20180815.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<p>最近看了一些框架的底层源码，了解了其中令人惊叹的设计模式，愈发感觉一个好的设计会给我们的代码带来多么灵活的扩展性。</p>
+<p>所以决定近期把各类设计模式好好整理一下，形成知识体系。而这篇要说的是比较入门的单例模式。</p>
+<p>那首先来反问三连，什么是单例模式？单例模式解决了什么问题？单例模式应用场景？怎么实现单例模式？</p>
+<p>不好意思，多了一连😆 ,下面，我们一一讨论。</p>
+<h2 id="toc_h2_0">什么是单例模式</h2>
+<blockquote>
+<p>单例模式属于创建型模式，它提供了一种创建对象的方式，确保只有单个对象被创建。这个设计模式主要目的是想在整个系统中只能出现类的一个实例，即<strong>一个类只有一个对象</strong>。</p>
+</blockquote>
+<p>比较官方的一段话，可以说解释的很清楚了。</p>
+<h2 id="toc_h2_1">解决了什么问题</h2>
+<p>由于在单例模式中，一个类只有一个对象，从其特性我们可以很自然的想到单例模式可以<br>
+节约空间，节约时间。</p>
+<ul>
+<li>
+<p>对于频繁使用的对象，尤其是比较复杂的对象创建，节省了创建对象的时间。</p>
+</li>
+<li>
+<p>因为不需要频繁创建对象，我们的GC压力也减轻了，而在GC中会有STW(stop the world)，从这一方面也节约了GC的时间。</p>
+</li>
+</ul>
+<p>结合单列模式的特点，可以顺理成章的知道它的应用场景。</p>
+<h2 id="toc_h2_2">实现方式</h2>
+<p>那么我们怎么实现一个单例模式呢，我们来思考我们的目标---保证在一个应用中一个类只有一个对象。</p>
+<p>于是，我们就有下边的步骤：</p>
+<ul>
+<li>
+<p>构造方法私有化</p>
+</li>
+<li>
+<p>在本类中创建一个对象</p>
+</li>
+<li>
+<p>定义一个public方法，在其他程序使用时提供这个已经创建好的对象</p>
+</li>
+</ul>
+<h3 id="toc_h3_3">饿汉式</h3>
+<p><font color="red"><em>【可以使用】</em></font></p>
+<pre><code class="language-java">public class Singleton {
+    private static Singleton instance = new Singleton();
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        return instance;
+    }
+}
+</code></pre>
+<ul>
+<li>
+<p>优点<br>
+实现简单，由于在类加载时就完成了实例化对象，没有线程安全问题。</p>
+</li>
+<li>
+<p>缺点<br>
+由于在类加载时就实例化对象，如果后面我们没有用到这个对象，就造成了对资源的浪费。当然，可以忽略不计。</p>
+</li>
+</ul>
+<p>饿汉式的；另一种写法：<br>
+<font color="red"><em>【可以使用】</em></font></p>
+<pre><code class="language-java">public class Singleton {
+    private static Singleton instance = null;
+
+    static {
+        instance = new Singleton();
+    }
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        return instance;
+    }
+}
+</code></pre>
+<h3 id="toc_h3_4">懒汉式</h3>
+<p>也称饱汉式，与饿汉式不同的是，类的实例在获得的方法中创建。<br>
+<font color="red"><em>【线程不安全，不可使用】</em></font></p>
+<pre><code class="language-java">public class Singleton {
+    private static Singleton instance = null;
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        if (null == instance) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}
+
+</code></pre>
+<p>显然，这样写并不保证线程安全。比如有这样两个线程A，B，它们都去调用 getInstance( )方法去拿这个类的对象。由于一开始没有做过实例化，instance为null，A线程在执行完<code>if (null == instance)</code>后，这时线程B也执行到此处，那A线程还没有完成类的实例化，instance还是null，故两个线程都调用了new去实例化了两个对象。😭</p>
+<p>那到这里，就会很简单的想到加锁来解决线程安全的问题了。<br>
+<font color="red"><em>【效率低下，不推荐使用】</em></font></p>
+<pre><code class="language-java">public class Singleton {
+    private static Singleton instance = null;
+
+    private Singleton() {
+    }
+
+    public static synchronized Singleton getInstance() {
+        if (null == instance) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}
+
+</code></pre>
+<p>观察上面的代码，我们可以看到，在每次调用getInstance() 时，即使该类已经实例化，还是要去做同步，而这种情况只要return就行了。</p>
+<p>那思考到这里，顺理成章的能想到，既然这样锁在方法上面效率低下，那就缩小锁的范围，所在这个类上面。于是有下面的实现：</p>
+<p><font color="red"><em>【线程不安全，不可以使用】</em></font></p>
+<pre><code class="language-java">public class Singleton {
+    private static Singleton instance = null;
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        if (null == instance) {
+            synchronized (Singleton.class) {
+                instance = new Singleton();
+            }
+        }
+        return instance;
+    }
+}
+
+</code></pre>
+<p>嗯，完美！但是仔细看一看，好像哪里不对啊。👿在多线程场景下，我们再捋一下这块代码的执行流程。同样有这样两个线程A，B，它们都去调用 getInstance( )方法去拿这个类的对象。由于一开始没有做过实例化，instance为null，A线程在执行完<code>if (null == instance)</code>后，拿到了锁。这时线程B也执行到此处，但是由于被锁了，就等待A线程锁的释放。A线程执行new实例化了Singleton，执行完毕后，释放了锁。那B又得到了锁，继续执行Singleton的实例化，悲剧！！！两个线程都调用了new去实例化了两个对象。😭</p>
+<p>经过一代又一代人的不懈努力，在此基础上，又有了下面的完美解决方式：</p>
+<h3 id="toc_h3_5">懒汉式双重校验锁</h3>
+<p><font color="red"><em>【可以使用】</em></font></p>
+<pre><code class="language-java">public class Singleton {
+    private volatile static Singleton instance = null;
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        if (null == instance) {
+            synchronized (Singleton.class) {
+                if (null == instance) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+
+</code></pre>
+<p>继续上面捋代码的逻辑，等到A线程实例化完成后，释放了锁。这时B线程执行到<code>if ( null == instance )</code>，由于A线程已经完成了实例化，故直接返回Instance。</p>
+<p>这里需要注意的是<strong>volatile</strong>关键字，JVM会有指令重排的情况，会造成获取到的对象没有被实例化。使用该关键字，可以保证修饰的关键字前后执行顺序唯一，不会进行指令重排。</p>
+<h3 id="toc_h3_6">内部类</h3>
+<p><font color="red"><em>【可以使用】</em></font></p>
+<pre><code class="language-java">public class Singleton {
+
+    private Singleton() {
+    }
+    
+    private static class SingletonHolder{
+        private static Singleton instance = new Singleton();
+    }
+
+    public static Singleton getInstance() {
+        return SingletonHolder.instance;
+    }
+}
+
+</code></pre>
+<p>与饿汉式相似，内部类的实现方式都通过在类加载时实例化的方式保证线程安全。</p>
+<p>不同点是饿汉式方式是只要Singleton类被装载就会实例化，没有Lazy-Loading的作用。但是静态内部类的实现方式在Singleton类被装载时并不会被立即实例化，而是在需要实例化时，调用getInstance方法，才会装载SingletonHolder类，从而完成Singleton的实例化。类的静态属性只会在第一次加载类的时候初始化，所以在这里，JVM帮助我们保证了线程的安全性，在类进行初始化时，别的线程是无法进入的。与饿汉式相比，这种实现方式既没有浪费资源，又能保证线程安全。</p>
+<h3 id="toc_h3_7">枚举</h3>
+<p><font color="red"><em>【推荐使用】</em></font></p>
+<pre><code class="language-java">public enum SingletonEnum {
+
+    instance;
+
+    private SingletonEnum() {
+    }
+
+    public void method() {
+
+    }
+}
+
+class Aa {
+    public static void main(String[] args) {
+        SingletonEnum.instance.method();
+    }
+}
+
+</code></pre>
+<blockquote>
+<p>在最后比较推荐使用<strong>枚举方式</strong>实现单例模式，IDEA上新建单例类使用的是第一种饿汉式方法。</p>
+</blockquote>
+<hr>
+<p>另，知乎上有一篇比较有意思的对单例模式的讲解可以参考：<a href="https://zhuanlan.zhihu.com/p/33102022" target="_blank">链接</a></p>
+                    <div>
+                        <hr>
+
+标题：设计模式系列之单例模式<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2019/10/14/1571040307396.html" target="_blank">https://aysaml.github.io/articles/2019/10/14/1571040307396.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h2">
+            <a href="#toc_h2_0">什么是单例模式</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_1">解决了什么问题</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_2">实现方式</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_3">饿汉式</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_4">懒汉式</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_5">懒汉式双重校验锁</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_6">内部类</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_7">枚举</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1571040307396"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1571040307396",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1571040307396",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1571040307396', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 22ms, 2020/07/29 15:41:17 -->

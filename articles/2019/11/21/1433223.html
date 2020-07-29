@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>一文带你整明白Java的N种锁 - 码恋</title><meta name="description" content="在并发中，为了解决程序中多个进程和线程对资源的抢占问题，在 Java 中引入了锁的概念。 各种各样的锁，对于初碰 Java 并发的同学来说，面对多达 20 种的锁，实在任重道远。"/><meta property="og:description" content="在并发中，为了解决程序中多个进程和线程对资源的抢占问题，在 Java 中引入了锁的概念。 各种各样的锁，对于初碰 Java 并发的同学来说，面对多达 20 种的锁，实在任重道远。"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="一文带你整明白Java的N种锁 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2019/11/21/1433223.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="一文带你整明白Java的N种锁 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2019/11/21/1433223.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="Dubbo系列笔记之项目结构" href="https://aysaml.github.io/articles/2019/11/15/1573790514430.html">
+            <link rel="next" title="Dubbo系列笔记之特殊示例用法" href="https://aysaml.github.io/articles/2019/12/14/1576312634579.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">一文带你整明白Java的N种锁</div>
+<div class="article__share"
+     data-title="一文带你整明白Java的N种锁"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2019/11/21/1433223.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2019-12-25
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B">多线程</a> &nbsp;
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/%E9%94%81">锁</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                一文带你整明白Java的N种锁
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20180523.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20180523.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h3 id="toc_h3_0">温馨提示：本文内容较长废话较多，如有心脏病、精神病史等请酌情查看。</h3>
+<h2 id="toc_h2_1">一、概述</h2>
+<p>本文源码基于openJDK8u。在阅读本文前，你需要对<strong>并发</strong>有所了解。</p>
+<p>在并发中，为了<strong>解决程序中多个进程和线程对资源的抢占问题</strong>，在 Java 中引入了锁的概念。</p>
+<p>各种各样的锁，对于初碰 Java 并发的同学来说，面对多达 20 种的锁，瞬间懵逼，退游戏这把鸡劳资不吃了......</p>
+<p>其实不要紧张，虽然锁的种类很多，但是都是根据其特性衍生出来的概念而已，如果你对 Java 锁不是很清晰，希望这篇文章能够对你有所帮助。朋友们，如果你不会做饭或者不知道吃什么请关注我麻辣德子感谢您的双...呸，学好 Java ， 拒绝沉迷某音，哈哈哈哈哈~</p>
+<p>下面，是一张关于锁的思维导图，带大家有一个总体的认识，配合此图食用效果更佳哈。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/ht2-e4a14af3.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="ht2.png"></p>
+<p>ps：如果看不清楚可以点击点击原图查看哦。</p>
+<h2 id="toc_h2_2">二、<code>synchronized</code> 带你跑毒</h2>
+<p>为了方便大家由浅入深（怀疑作者开车但是没有证据...），我们从大家比较熟悉的 <code>synchronized</code> 说起。对于 Java 使用者来说，<code>synchronized</code> 关键字是实现锁的一种重要方式。</p>
+<pre><code class="language-java">package com.aysaml.demo.test;
+
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * SynchronizedDemo 示例
+ *
+ * @author wangning
+ * @date 2019-11-26
+ */
+public class SynchronizedDemo {
+
+    private static int count = 0;
+
+
+    private static void addCount() {
+        count++;
+    }
+
+    public static void main(String[] args) {
+
+        int loopCount = 1000;
+
+        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder()
+                .setNameFormat("demo-pool-%d").build();
+        ExecutorService executorService = new ThreadPoolExecutor(10, 1000,
+                60L, TimeUnit.SECONDS,
+                new LinkedBlockingQueue&lt;&gt;(10), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+        
+        for (int i = 0; i &lt; loopCount; i++) {
+            Runnable r = SynchronizedDemo::addCount;
+            executorService.execute(r);
+        }
+        executorService.shutdown();
+        System.out.println(SynchronizedDemo.count);
+    }
+
+}
+
+</code></pre>
+<p>措不及防的代码粘贴，哈哈哈。</p>
+<p>上面是比较经典的线程并发问题示例。运行这段代码，得到的结果多种多样，996、997、998.....<br>
+结果并不像我们预期的那样是1000，遇到多线程资源竞争时我们可能第一反应的就是加 <code>synchronized</code>，简单粗暴，于是变成下边这样：</p>
+<pre><code class="language-java">private static synchronized void addCount() {
+        count++;
+    }
+</code></pre>
+<p>在累加方法加上 <code>synchronized</code>，就给这个方法加了锁，如此，每次执行的结果就符合了我们的预期。<br>
+Java 内置了一个反编译工具 <code>javap</code> 可以反编译字节码文件，通过执行命令 <code>javap -verbose -p SynchronizedDemo.class</code> 可以看到上述这个类的字节码文件。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-b2439a3f.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>查找被加锁的方法 <code>addCount()</code> 发现，<code>synchronized</code> <strong>修饰方法</strong> 时是通过 <strong>ACC_SYNCHRONIZED</strong> 标记符号指定该方法是一个同步方法，从而执行相应的同步调用。</p>
+<p>同样查看字节码，可以知道 <code>synchronized</code> <strong>修饰代码块</strong> 时 通过<strong>monitorenter</strong> 和 <strong>monitorexit</strong> 指令来解决同步问题，其中 <strong>monitorenter</strong> 指令指向同步代码块的开始位置，<strong>monitorexit</strong> 指令指明同步代码块的结束位置。</p>
+<h2 id="toc_h2_3">三、各种锁的解释，猥琐发育捡枪捡子弹</h2>
+<blockquote>
+<p>这部分只是简单说一下各种锁以及相关概念，让大家有一个简单了解，其中相应的在 Java 中的实现会用较长的篇幅做介绍。</p>
+</blockquote>
+<h3 id="toc_h3_4">偏向锁、轻量级锁、重量级锁</h3>
+<p>在程序第一次执行到 <code>synchronized</code> 代码块的时候，锁对象变成 <strong>偏向锁</strong> ，即偏向于第一个获得它的线程的锁。在程序第二次执行到改代码块时，线程会判断此时持有锁的线程是否就是它自己，如果是就继续往下面执行。值得注意的是，在第一次执行完同步代码块时，并不会释放这个偏向锁。从效率角度来看，如果第二次执行同步代码块的线程一直是一个，并不需要重新做加锁操作，没有额外开销，效率极高。</p>
+<p>前面说的只有一个线程同步执行代码块只是理想的状态下（如果只有一个线程也不用考虑并发的问题了，虽然这么说有点不太严谨哈...）,一旦有第二个线程加入 <strong>锁竞争</strong> ，偏向锁就自动升级为 <strong>轻量级锁</strong> 。而这里不同情况需值得注意：当第二个线程想要获取锁时，且这个锁是偏向锁时，会判断当前持有锁的线程是否仍然存活，如果该<strong>持有锁的线程没有存活</strong>，<strong>那么偏向锁并不会升级为轻量级锁</strong> 。什么是锁竞争：<strong>即一个线程想要获取另一个线程持有的锁</strong> 。</p>
+<p>在此状态下各个线程继续做锁竞争，没有抢到锁的线程循环判断是否能够成功获取锁，这种状态称为 <strong>自旋</strong> ，故轻量级锁是一种 <strong>自旋锁</strong> 。虚拟机中有个计数器用来记录自旋次数，默认允许循环10次，这个值可以通过虚拟机参数<code>-XX：PreBlockSpin</code>来进行修改。如果锁竞争特别严重，达到这个自旋次数最大的限度，轻量级锁就会升级为<strong>重量级锁</strong>。当其他线程尝试获取锁的时候，发现现在的锁是重量级锁，则直接将自己挂起，等待将来被唤醒。</p>
+<p>关于这块的更多信息，可以参考<a href="https://blog.csdn.net/u010723709/article/details/50341631" target="_blank">《Synchronized与三种锁态》</a></p>
+<h3 id="toc_h3_5">公平锁、非公平锁</h3>
+<p>当一个线程持有的锁释放时，其他线程按照先后顺序，<strong>先申请的先得到锁</strong>，那么这个锁就是<strong>公平锁</strong>。反之，如果<strong>后申请的线程有可能先获取到锁</strong>，就是<strong>非公平锁</strong> 。</p>
+<p>Java 中的 <code>ReentrantLock</code> 可以通过其构造函数来指定是否是公平锁，默认是非公平锁。一般来说，使用非公平锁可以获得较大的吞吐量，所以推荐优先使用非公平锁。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-d67018df.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p><code>synchronized</code> 就是一种非公平锁。</p>
+<h3 id="toc_h3_6">乐观锁、悲观锁</h3>
+<p>先说悲观锁，即在<strong>读数据的时候总认为其他线程会对数据进行修改</strong>，所以采取<strong>加锁</strong>的形式，一旦本线程要读取数据时，就加锁，其他线程被阻塞，等待锁的释放。所以悲观锁总结为<strong>悲观加锁阻塞线程</strong>。</p>
+<p>在<strong>读数据</strong>时总认为其他线程<strong>不会对数据做修改</strong>，在<strong>更新数据时</strong>会判断其他线程<strong>有没有更新数据</strong>，如果有更新，则重新读取，再次尝试更新，循环上述步骤直到更新成功，即为<strong>乐观锁</strong>。</p>
+<p>这样来看乐观锁实际上是没有锁的，只是通过一种<strong>比较交换</strong>的方法来保证数据同步，总结为<strong>乐观无锁回滚重试</strong>。</p>
+<h3 id="toc_h3_7">CAS（比较和交换）</h3>
+<p>CAS， 英文直译为 compare and swap，即<strong>比较和交换</strong>。上面乐观锁也说了，其实就是一种比较与交换的过程。</p>
+<p>简单描述一下就是：<strong>读取到一个值为 A ，在要将这个值更新为B 之前，检查是否等于 A （比较），如果是则将 A 更新为 B（交换） ，否则什么都不做</strong>。</p>
+<p>通过这种方式，可以实现不必使用加锁的方式，就能保证资源在多线程之间的同步，显然，不阻塞线程，可以大大提高吞吐量。方式虽好，但是也存在问题。</p>
+<ul>
+<li><strong>ABA 问题</strong>，即如果一个值从 A 变为 B 再变回 A 时，这样 CAS 就会认为值没有发生变化。
+<ul>
+<li>对于这个问题，已经有了使用版本号的解决方式，即每次变量更新的时候变量的<strong>版本号</strong>都 <strong>+1</strong>，即由 <code>A-&gt;B-&gt;A</code> 就变成了 <code>1A-&gt;2B-&gt;3A</code> 。</li>
+</ul>
+</li>
+<li><strong>循环时间长开销大</strong>，如果锁的竞争比较激烈，就会导致 CAS 不断的重复执行，一直循环，耗费 CPU 资源。</li>
+<li><strong>只能保证一个变量的同步</strong>，显然，由于其特性，CAS 只能保证一个共享变量的原子操作。</li>
+</ul>
+<h3 id="toc_h3_8">可重入锁</h3>
+<p>可重入锁即<strong>允许多个线程多次获取同一把锁</strong>，那从锁本身的角度来看，就是可以重新进入该锁。比如有一个递归函数里面有加锁操作，如果这个锁不阻塞自己，就是<strong>可重入锁</strong>，故也称<strong>递归锁</strong> 。</p>
+<p>再看上面的偏向锁、轻量级锁、重量级锁可以知道<strong>synchronized关键字加锁是可重入的</strong> ，不仅如此，<strong>JDK 中实现 Lock 接口的锁都是可重入的</strong> 。感兴趣的读者可以自行了解怎么实现不可重入锁，这里只讲一下锁的定义。</p>
+<h3 id="toc_h3_9">可中断锁</h3>
+<p>如果线程A持有锁，线程B等待获取该锁。由于线程A持有锁的时间过长，线程B不想继续等待了，我们可以让线程B中断自己或者在别的线程里中断它，这种就是<strong>可中断锁</strong>。</p>
+<p>在 Java 中，synchronized就是<strong>不可中断锁</strong>，而Lock的实现类都是<strong>可中断锁</strong>。</p>
+<h3 id="toc_h3_10">独享锁、共享锁</h3>
+<p><strong>独享锁</strong>亦称<strong>互斥锁</strong>，<strong>排它锁</strong>，容易理解这种锁<strong>每次只允许一个线程持有</strong>。反之，就是<strong>共享锁</strong>啦。</p>
+<h3 id="toc_h3_11">读锁、写锁</h3>
+<p>上面说独享锁和共享锁，其实读写锁就是其最典型的锁。写锁是独享锁，读锁是共享锁。在后面我们会着重说一下Java 中的读写锁实现。</p>
+<h2 id="toc_h2_12">三、CAS 在 Java 中的实现，带上这把 M4-CAS</h2>
+<p>通过上面对 CAS 的简单介绍，相信大家对 CAS 也有了一个比较简单的概念：<strong>通过比较和交换实现单个变量的线程安全</strong> 。</p>
+<p>JDK 中对 CAS 的实现在 <code>java.util.concurrent.atomic</code> 包中：</p>
+<p><img src="https://img.hacpai.com/file/2019/12/image-667d562f.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<table>
+<thead>
+<tr><th align="left"><strong>类名</strong></th><th align="left"><strong>描述</strong></th></tr>
+</thead>
+<tbody>
+<tr><td align="left"><strong>AtomicBoolean</strong></td><td align="left">可以用原子方式更新的 <code>boolean</code> 值。</td></tr>
+<tr><td align="left"><strong>AtomicInteger</strong></td><td align="left">可以用原子方式更新的 <code>int</code> 值。</td></tr>
+<tr><td align="left"><strong>AtomicIntegerArray</strong></td><td align="left">可以用原子方式更新其元素的 <code>int</code> 数组。</td></tr>
+<tr><td align="left"><strong>AtomicIntegerFieldUpdater<t></t></strong></td><td align="left">基于反射的实用工具，可以对指定类的指定 <code>volatile int</code> 字段进行原子更新。</td></tr>
+<tr><td align="left"><strong>AtomicLong</strong></td><td align="left">可以用原子方式更新的 <code>long</code> 值。</td></tr>
+<tr><td align="left"><strong>AtomicLongArray</strong></td><td align="left">可以用原子方式更新其元素的 <code>long</code> 数组。</td></tr>
+<tr><td align="left"><strong>AtomicLongFieldUpdater<t></t></strong></td><td align="left">基于反射的实用工具，可以对指定类的指定 <code>volatile long</code> 字段进行原子更新。</td></tr>
+<tr><td align="left"><strong>AtomicMarkableReference<v></v></strong></td><td align="left"><code>AtomicMarkableReference</code> 维护带有标记位的对象引用，可以原子方式对其进行更新。用来解决 ABA 问题，只关心有没有被修改过。</td></tr>
+<tr><td align="left"><strong>AtomicReference<v></v></strong></td><td align="left">可以用原子方式更新的对象引用。</td></tr>
+<tr><td align="left"><strong>AtomicReferenceArray<e></e></strong></td><td align="left">可以用原子方式更新其元素的对象引用数组。</td></tr>
+<tr><td align="left"><strong>AtomicReferenceFieldUpdater&lt;T,V&gt;</strong></td><td align="left">基于反射的实用工具，可以对指定类的指定 <code>volatile</code> 字段进行原子更新。</td></tr>
+<tr><td align="left"><strong>AtomicStampedReference<v></v></strong></td><td align="left"><code>AtomicStampedReference</code> 维护带有整数“标志”的对象引用，可以用原子方式对其进行更新。用来解决 ABA 问题，与上面的 <code>AtomicMarkableReference&lt;V&gt;</code> 相比，除了关系有没有被修改过之外，还关心修改了几次。</td></tr>
+</tbody>
+</table>
+<p>以 <code>AtomicInteger</code> 为例，看看它是如何保证对 int 的操作线程安全的。</p>
+<pre><code class="language-java">package java.util.concurrent.atomic;
+import java.util.function.IntUnaryOperator;
+import java.util.function.IntBinaryOperator;
+import sun.misc.Unsafe;
+
+public class AtomicInteger extends Number implements java.io.Serializable {
+    private static final long serialVersionUID = 6214790243416807050L;
+
+    // 使用 Unsafe.compareAndSwapInt 进行数据更新
+    private static final Unsafe unsafe = Unsafe.getUnsafe();
+    // 内存偏移量，即内存地址
+    private static final long valueOffset;
+
+    static {
+        try {
+            valueOffset = unsafe.objectFieldOffset
+                (AtomicInteger.class.getDeclaredField("value"));
+        } catch (Exception ex) { throw new Error(ex); }
+    }
+
+    private volatile int value;
+
+    /**
+     * 带有初值的构造函数
+     *
+     * @param initialValue the initial value
+     */
+    public AtomicInteger(int initialValue) {
+        value = initialValue;
+    }
+
+    /**
+     * 无参构造函数默认值为0
+     */
+    public AtomicInteger() {
+    }
+
+    /**
+     * 获得当前值
+     *
+     * @return the current value
+     */
+    public final int get() {
+        return value;
+    }
+
+    /**
+     * 设置所给值，因为value是使用volatile关键字修饰，所以一经修改，其他线程会立即看到value的修改
+     *
+     * @param newValue the new value
+     */
+    public final void set(int newValue) {
+        value = newValue;
+    }
+
+    /**
+     * 设置给定的值，通过调用Unsafe的延迟设置方法不保证结果被其他线程立即看到
+     *
+     * @param newValue the new value
+     * @since 1.6
+     */
+    public final void lazySet(int newValue) {
+        unsafe.putOrderedInt(this, valueOffset, newValue);
+    }
+
+    /**
+     * 原子方式设置新值，返回旧值
+     *
+     * @param newValue the new value
+     * @return the previous value
+     */
+    public final int getAndSet(int newValue) {
+        return unsafe.getAndSetInt(this, valueOffset, newValue);
+    }
+
+    /**
+     * 使用 CAS 方式设置新值，成功返回true
+     *
+     * @param expect the expected value
+     * @param update the new value
+     * @return {@code true} if successful. False return indicates that
+     * the actual value was not equal to the expected value.
+     */
+    public final boolean compareAndSet(int expect, int update) {
+        return unsafe.compareAndSwapInt(this, valueOffset, expect, update);
+    }
+
+    /**
+     * 使用 CAS 方式更新值
+     *
+     * &lt;p&gt;&lt;a href="package-summary.html#weakCompareAndSet"&gt;May fail
+     * spuriously and does not provide ordering guarantees&lt;/a&gt;, so is
+     * only rarely an appropriate alternative to {@code compareAndSet}.
+     *
+     * @param expect the expected value
+     * @param update the new value
+     * @return {@code true} if successful
+     */
+    public final boolean weakCompareAndSet(int expect, int update) {
+        return unsafe.compareAndSwapInt(this, valueOffset, expect, update);
+    }
+
+    /**
+     * 原子增加
+     *
+     * @return the previous value
+     */
+    public final int getAndIncrement() {
+        return unsafe.getAndAddInt(this, valueOffset, 1);
+    }
+
+    /**
+     * 原子减1
+     *
+     * @return the previous value
+     */
+    public final int getAndDecrement() {
+        return unsafe.getAndAddInt(this, valueOffset, -1);
+    }
+
+    /**
+     * 原子增加给定值
+     *
+     * @param delta the value to add
+     * @return the previous value
+     */
+    public final int getAndAdd(int delta) {
+        return unsafe.getAndAddInt(this, valueOffset, delta);
+    }
+
+    /**
+     * Atomically increments by one the current value.
+     *
+     * @return the updated value
+     */
+    public final int incrementAndGet() {
+        return unsafe.getAndAddInt(this, valueOffset, 1) + 1;
+    }
+
+    /**
+     * Atomically decrements by one the current value.
+     *
+     * @return the updated value
+     */
+    public final int decrementAndGet() {
+        return unsafe.getAndAddInt(this, valueOffset, -1) - 1;
+    }
+
+    /**
+     * Atomically adds the given value to the current value.
+     *
+     * @param delta the value to add
+     * @return the updated value
+     */
+    public final int addAndGet(int delta) {
+        return unsafe.getAndAddInt(this, valueOffset, delta) + delta;
+    }
+
+    /**
+     * Atomically updates the current value with the results of
+     * applying the given function, returning the previous value. The
+     * function should be side-effect-free, since it may be re-applied
+     * when attempted updates fail due to contention among threads.
+     *
+     * @param updateFunction a side-effect-free function
+     * @return the previous value
+     * @since 1.8
+     */
+    public final int getAndUpdate(IntUnaryOperator updateFunction) {
+        int prev, next;
+        do {
+            prev = get();
+            next = updateFunction.applyAsInt(prev);
+        } while (!compareAndSet(prev, next));
+        return prev;
+    }
+
+    /**
+     * Atomically updates the current value with the results of
+     * applying the given function, returning the updated value. The
+     * function should be side-effect-free, since it may be re-applied
+     * when attempted updates fail due to contention among threads.
+     *
+     * @param updateFunction a side-effect-free function
+     * @return the updated value
+     * @since 1.8
+     */
+    public final int updateAndGet(IntUnaryOperator updateFunction) {
+        int prev, next;
+        do {
+            prev = get();
+            next = updateFunction.applyAsInt(prev);
+        } while (!compareAndSet(prev, next));
+        return next;
+    }
+
+    /**
+     * Atomically updates the current value with the results of
+     * applying the given function to the current and given values,
+     * returning the previous value. The function should be
+     * side-effect-free, since it may be re-applied when attempted
+     * updates fail due to contention among threads.  The function
+     * is applied with the current value as its first argument,
+     * and the given update as the second argument.
+     *
+     * @param x the update value
+     * @param accumulatorFunction a side-effect-free function of two arguments
+     * @return the previous value
+     * @since 1.8
+     */
+    public final int getAndAccumulate(int x,
+                                      IntBinaryOperator accumulatorFunction) {
+        int prev, next;
+        do {
+            prev = get();
+            next = accumulatorFunction.applyAsInt(prev, x);
+        } while (!compareAndSet(prev, next));
+        return prev;
+    }
+
+    /**
+     * Atomically updates the current value with the results of
+     * applying the given function to the current and given values,
+     * returning the updated value. The function should be
+     * side-effect-free, since it may be re-applied when attempted
+     * updates fail due to contention among threads.  The function
+     * is applied with the current value as its first argument,
+     * and the given update as the second argument.
+     *
+     * @param x the update value
+     * @param accumulatorFunction a side-effect-free function of two arguments
+     * @return the updated value
+     * @since 1.8
+     */
+    public final int accumulateAndGet(int x,
+                                      IntBinaryOperator accumulatorFunction) {
+        int prev, next;
+        do {
+            prev = get();
+            next = accumulatorFunction.applyAsInt(prev, x);
+        } while (!compareAndSet(prev, next));
+        return next;
+    }
+
+    /**
+     * Returns the String representation of the current value.
+     * @return the String representation of the current value
+     */
+    public String toString() {
+        return Integer.toString(get());
+    }
+
+    /**
+     * Returns the value of this {@code AtomicInteger} as an {@code int}.
+     */
+    public int intValue() {
+        return get();
+    }
+
+    /**
+     * Returns the value of this {@code AtomicInteger} as a {@code long}
+     * after a widening primitive conversion.
+     * @jls 5.1.2 Widening Primitive Conversions
+     */
+    public long longValue() {
+        return (long)get();
+    }
+
+    /**
+     * Returns the value of this {@code AtomicInteger} as a {@code float}
+     * after a widening primitive conversion.
+     * @jls 5.1.2 Widening Primitive Conversions
+     */
+    public float floatValue() {
+        return (float)get();
+    }
+
+    /**
+     * Returns the value of this {@code AtomicInteger} as a {@code double}
+     * after a widening primitive conversion.
+     * @jls 5.1.2 Widening Primitive Conversions
+     */
+    public double doubleValue() {
+        return (double)get();
+    }
+
+}
+
+</code></pre>
+<p>源码中的注释写的很详细，写注释写到一半决定不做谷歌翻译了...主要是通过 Unsafe 提供的 <code>compareAndSwapInt(Object var1, long var2, int var4, int var5)</code> 等方法来实现 CAS 原子操作，Unsafe 提供了执行低级别、不安全操作的方法，如直接访问系统内存资源、自主管理内存资源等。</p>
+<blockquote>
+<p>CAS操作包含三个操作数---内存位置、预期原值及新值。执行 CAS 操作的时候，将内存位置的值与预期原值比较，如果相匹配，那么处理器会自动将该位置值更新为新值，否则，处理器不做任何操作。我们都知道，CAS 是一条 CPU 的原子指令（ cmpxchg 指令），不会造成所谓的数据不一致问题，Unsafe 提供的 CAS 方法（如 compareAndSwapXXX ）底层实现即为 CPU 指令 cmpxchg 。</p>
+</blockquote>
+<p>如果小伙伴对其感兴趣可以参考 <a href="https://tech.meituan.com/2019/02/14/talk-about-java-magic-class-unsafe.html" target="_blank">《Java魔法类：Unsafe应用解析》</a></p>
+<h2 id="toc_h2_13">四、AQS 给你穿上三级甲</h2>
+<p>AQS，全名 <a href="https://github.com/wangning1018/openjdk/blob/jdk8u/jdk8u/jdk/src/share/classes/java/util/concurrent/locks/AbstractQueuedSynchronizer.java" target="_blank"><code>AbstractQueuedSynchronizer</code></a>，直译为抽象队列同步器，是构建锁或者其他同步组件的基础框架，可以解决大部分同步问题。实现原理可以简单理解为：<strong>同步状态( state ) + FIFO 线程等待队列</strong> 。</p>
+<ul>
+<li>
+<p>资源 state<br>
+AQS使用了一个 int 类型的成员变量 state 来表示同步状态，使用了 <code>volatile</code> 关键字来保证线程间的可见性，当 state &gt; 0 时表示已经获取了锁，当 state = 0 时表示释放了锁。它提供了三个方法（getState()、setState(int newState)、compareAndSetState(int expect,int update)）来对同步状态state进行操作，确保对state的操作是安全的。<br>
+❀ 而对于不同的锁，state 也有不同的值：</p>
+<ul>
+<li>独享锁中 state =0 代表释放了锁，state = 1 代表获取了锁。</li>
+<li>共享锁中 state 即持有锁的数量。</li>
+<li>可重入锁 state 即代表重入的次数。</li>
+<li>读写锁比较特殊，因 state 是 int 类型的变量，为 32 位，所以采取了中间切割的方式，<strong>高 16 位标识读锁的数量</strong> ，<strong>低 16 位标识写锁的数量</strong> 。</li>
+</ul>
+</li>
+<li>
+<p>FIFO 线程等待队列<br>
+实现队列的方式无外乎两种，一是使用数组，二是使用 Node 。AQS 使用了 Node 的方式实现队列。</p>
+</li>
+</ul>
+<pre><code class="language-java"> static final class Node {
+        /** 标记一个节点是在共享模式，默认为共享模式 */
+        static final Node SHARED = new Node();
+        /** 标记一个节点为独占模式 */
+        static final Node EXCLUSIVE = null;
+
+        
+        static final int CANCELLED =  1;
+      
+        static final int SIGNAL    = -1;
+        
+        static final int CONDITION = -2;
+       
+        static final int PROPAGATE = -3;
+
+        /** 以此变量来表示当前线程的状态 */
+        volatile int waitStatus;
+
+	/** 前驱 */
+        volatile Node prev;
+
+	/** 后继 */
+        volatile Node next;
+
+	/** 用于保存线程 */
+        volatile Thread thread;
+	
+	/** 保存下一个处于等待状态的Node */
+        Node nextWaiter;
+
+        /**
+         * 用来判断是否是共享模式
+         */
+        final boolean isShared() {
+            return nextWaiter == SHARED;
+        }
+
+        /**
+         * Returns previous node, or throws NullPointerException if null.
+         * Use when predecessor cannot be null.  The null check could
+         * be elided, but is present to help the VM.
+         *
+         * @return the predecessor of this node
+         */
+        final Node predecessor() throws NullPointerException {
+            Node p = prev;
+            if (p == null)
+                throw new NullPointerException();
+            else
+                return p;
+        }
+
+        Node() {    // 无参构造方法，默认为共享模式
+        }
+
+        Node(Thread thread, Node mode) {     // 用于构造下一个等待线程Node节点
+            this.nextWaiter = mode;
+            this.thread = thread;
+        }
+
+        Node(Thread thread, int waitStatus) { // 用于构造带有本线程状态的Node
+            this.waitStatus = waitStatus;
+            this.thread = thread;
+        }
+    }
+</code></pre>
+<p>在 AQS 中定义了两个节点,分别为头尾节：</p>
+<pre><code class="language-java">   /** 等待队列的头结点，作为队列的初始化节点，只能通过setHead()方法设置值，
+    *  	而这个方法将Node的变量值都置空，便于及时GC。当其有值时，必须保证waiteStatus为CANCELLED状态。
+    */
+    private transient volatile Node head;
+
+    /**
+     * 用于保存线程等待队列的尾结点。
+     * 通过enq()方法设置值。
+     */
+    private transient volatile Node tail;
+</code></pre>
+<p>这个队列的结构见下图：</p>
+<p><img src="https://img.hacpai.com/file/2019/12/image-2b0ab9bb.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>AQS 的一堆方法，按照获取锁和解锁的维度可以分为下面这样：</p>
+<h3 id="toc_h3_14">获取锁相关方法</h3>
+<table>
+<thead>
+<tr><th align="left"><strong>方法</strong></th><th align="left"><strong>描述</strong></th></tr>
+</thead>
+<tbody>
+<tr><td align="left">acquire(int arg)</td><td align="left">独占模式获取锁，忽略中断。</td></tr>
+<tr><td align="left">acquireInterruptibly(int arg)</td><td align="left">独占模式获取锁，如果被中断则中止。</td></tr>
+<tr><td align="left">acquireShared(int arg)</td><td align="left">共享模式获取锁，忽略中断。</td></tr>
+<tr><td align="left">acquireSharedInterruptibly(int arg)</td><td align="left">共享模式获取锁，如果被中断则中止。</td></tr>
+<tr><td align="left">tryAcquire(int arg)</td><td align="left">尝试在独占模式获取锁。<strong>由子类自行实现。</strong></td></tr>
+<tr><td align="left">tryAcquireNanos(int arg, long nanosTimeout)</td><td align="left">尝试在独占模式获取锁，如果被中断则中止，如果到了给定超时时间 nanosTimeout ，则会失败。</td></tr>
+<tr><td align="left">tryAcquireShared(int arg)</td><td align="left">尝试在共享模式获取锁。</td></tr>
+<tr><td align="left">tryAcquireSharedNanos(int arg, long nanosTimeout)</td><td align="left">尝试在共享模式获取锁，如果被中断则中止，如果到了给定超时时间 nanosTimeout ，则会失败。</td></tr>
+<tr><td align="left">addWaiter(Node mode)</td><td align="left">将当前线程加入到CLH队列队尾。</td></tr>
+<tr><td align="left">acquireQueued(final Node node, int arg)</td><td align="left">当前线程会根据公平性原则来进行阻塞等待,直到获取锁为止；并且返回当前线程在等待过程中有没有中断过。</td></tr>
+<tr><td align="left">selfInterrupt()</td><td align="left">产生一个中断。</td></tr>
+</tbody>
+</table>
+<h3 id="toc_h3_15">解锁相关方法</h3>
+<table>
+<thead>
+<tr><th align="left"><strong>方法</strong></th><th align="left"><strong>描述</strong></th></tr>
+</thead>
+<tbody>
+<tr><td align="left">release(int arg)</td><td align="left">以独占模式释放对象。</td></tr>
+<tr><td align="left">releaseShared(int arg)</td><td align="left">以共享模式释放对象。</td></tr>
+<tr><td align="left">tryRelease(int arg)</td><td align="left">试图设置状态来反映独占模式下的一个释放。<strong>由子类自行实现。</strong></td></tr>
+<tr><td align="left">tryReleaseShared(int arg)</td><td align="left">试图设置状态来反映共享模式下的一个释放。</td></tr>
+<tr><td align="left">unparkSuccessor(Node node)</td><td align="left">用来唤醒节点。</td></tr>
+</tbody>
+</table>
+<h2 id="toc_h2_16">五、<code>Lock</code> 带你吃鸡</h2>
+<p>除了 <code>synchronized</code> 外，在 Java 中还有  <code>Lock</code>  接口的一系列实现来加锁。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-3ee1eb85.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>如上绿色虚线表示实现，<code>WriteLock</code>、<code>ReadLock</code>、<code>ReentrantLock</code> 都实现了 <code>Lock</code> 接口，三者分别对应读锁、写锁和可重入锁，其中 <code>ReadWriteLock</code> 定义了读锁和写锁，<code>ReentrantReadWriteLock</code> 以静态内部类的形式实现了读写锁。</p>
+<p>首先创建一个单例读写锁：</p>
+<pre><code class="language-java">package com.aysaml.demo.test;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+/**
+ * 单例读写锁
+ *
+ * @author wangning
+ * @date 2019-11-26
+ */
+public enum Locker {
+
+    instance;
+
+    private Locker() {
+    }
+
+    private static final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    public Lock writeLock() {
+        return lock.writeLock();
+    }
+}
+
+</code></pre>
+<p>如此可以在上述的累加方法上面加锁做同步：</p>
+<pre><code> private static void addCount() {
+        Lock locker = Locker.instance.writeLock();
+        locker.lock();
+        count++;
+        locker.unlock();
+    }
+</code></pre>
+<p>看下运行结果，如愿以偿（总感觉这个词用在这不太对，真是实在想不出什么词了，哈哈，意思你们懂就好）。</p>
+<p><img src="https://img.hacpai.com/file/2019/11/image-d47363df.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>两种加锁方式比较：</p>
+<blockquote>
+<p><code>synchronized</code>属于互斥锁，任何时候只允许一个线程的读写操作，其他线程必须等待；<br>
+<code>ReadWriteLock</code>允许多个线程获得读锁，但只允许一个线程获得写锁，效率相对较高。</p>
+</blockquote>
+<p>看了上面的 Lock 接口的实现图，我们知道在 Java 中锁有三个重要实现，下面一一来看。</p>
+<h3 id="toc_h3_17">读锁写锁抽象队列同步器三级甲</h3>
+<hr>
+<p>上面说了读写锁属于共享锁，即允许同一时刻有多个线程获取锁。在一些业务中，读的操作比写的操作多，相比较 synchronized 而言，读写锁采用 CAS 方式保证资源同步，所以使用读写锁可以大大增加吞吐量。</p>
+<p>在Java 中 <code>ReentrantReadWriteLock</code> 中以内部类的形式实现了读写锁，如下：</p>
+<p><img src="https://img.hacpai.com/file/2019/12/image-150a2eac.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>再接着分别看他们的实现：</p>
+<ul>
+<li>ReadLock</li>
+</ul>
+<p><img src="https://img.hacpai.com/file/2019/12/image-33f8d16d.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<ul>
+<li>WriteLock</li>
+</ul>
+<p><img src="https://img.hacpai.com/file/2019/12/image-3bc75474.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>可以看到两个锁中的加锁操作都有一个关键的东西 Sync ：</p>
+<p><img src="https://img.hacpai.com/file/2019/12/image-235fc95a.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<p>Sync 是 <code>ReentrantReadWriteLock</code> 的一个抽象内部类，它继承了 <code>AbstractQueuedSynchronizer</code> 并实现了共享与独享方式的同步操作。读写锁正好是一对共享&amp;独占锁，而同步的队列也有共享和独占之分，那我们就从它们的加锁和解锁分别来看 AQS 的工作流程：</p>
+<h3 id="toc_h3_18">写锁（独占式）</h3>
+<h4 id="toc_h4_19">加锁</h4>
+<pre><code class="language-java">        public void lock() {
+            sync.acquire(1);
+        }
+</code></pre>
+<p>这是 WriteLock 的加锁方法，可以看到加锁实际上是调用了 Sync 的 acquire(int arg) 方法，而这个方法是在 AQS 中实现的，它使用 final 关键字来做修饰，在子类中不可重写。</p>
+<pre><code class="language-java">public final void acquire(int arg) {
+        if (!tryAcquire(arg) &amp;&amp;
+            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+            selfInterrupt();
+    }
+</code></pre>
+<p>那 <code>acquire(int arg)</code> 做了什么呢，可以看到执行了四个方法：</p>
+<ul>
+<li>tryAcquire：尝试获取锁，获取成功则设置锁状态并返回 true ，否则返回 false 。需子类自行实现。</li>
+<li>addWaiter：将当前线程加入到 CLH 队列队尾。已有实现。</li>
+<li>acquireQueued：当前线程会根据公平性原则来进行阻塞等待,直到获取锁为止；并且返回当前线程在等待过程中有没有中断过。已有实现。</li>
+<li>selfInterrupt：产生中断。已有实现。</li>
+</ul>
+<p>前面我们说 AQS 由线程状态 state 和 线程等待队列组成，<strong>AQS 加锁解锁的过程实际上就是对线程状态的修改和等待队列的出入队列操作</strong>，而 AQS 的子类可以通过重写 <code>tryAcquire(int acquires)</code> 方法来对 state 进行修改操作。于是就有 ReentrantReadWriteLock 中的 Sync 重写了 tryAcquire 方法：</p>
+<pre><code class="language-java"> protected final boolean tryAcquire(int acquires) {
+            // 获取当前线程
+            Thread current = Thread.currentThread();
+	    // 拿到state变量，即锁的个数
+            int c = getState();
+	    // 获得写锁的数量，前边说了低16位表示写锁个数
+            int w = exclusiveCount(c);
+	    // 若该线程已经持有锁
+            if (c != 0) {
+                // (Note: if c != 0 and w == 0 then shared count != 0)
+		// 如果写锁数量为0或者持有锁的线程不是当前线程，返回 false
+                if (w == 0 || current != getExclusiveOwnerThread())
+                    return false;
+		// 如果写入锁数量大于最大数量（65535），跑出异常
+                if (w + exclusiveCount(acquires) &gt; MAX_COUNT)
+                    throw new Error("Maximum lock count exceeded");
+                // Reentrant acquire
+                setState(c + acquires);
+                return true;
+            }
+	    // 如果写线程数为0，并且当前线程需要阻塞那么就返回失败；或者如果通过CAS增加写线程数失败也返回失败。
+            if (writerShouldBlock() ||
+                !compareAndSetState(c, c + acquires))
+                return false;
+	    // 设置当前线程为锁的拥有者
+            setExclusiveOwnerThread(current);
+            return true;
+        }
+</code></pre>
+<p>再来看下 addWaiter 方法：</p>
+<pre><code class="language-java">private Node addWaiter(Node mode) {
+        Node node = new Node(Thread.currentThread(), mode);
+        // Try the fast path of enq; backup to full enq on failure
+        Node pred = tail;
+        if (pred != null) {
+            node.prev = pred;
+	    // 通过 CAS 设置尾结点
+            if (compareAndSetTail(pred, node)) {
+                pred.next = node;
+                return node;
+            }
+        }
+	// 如果不成功则多次尝试
+        enq(node);
+        return node;
+    }
+</code></pre>
+<p>enq(Node node) 方法如下：</p>
+<pre><code>private Node enq(final Node node) {
+        for (;;) {
+            Node t = tail;
+            if (t == null) { // Must initialize
+                if (compareAndSetHead(new Node()))
+                    tail = head;
+            } else {
+                node.prev = t;
+                if (compareAndSetTail(t, node)) {
+                    t.next = node;
+                    return t;
+                }
+            }
+        }
+    }
+</code></pre>
+<p>可以看到 enq 方法使用了死循环的方式一致尝试设置尾结点，直到成功。</p>
+<p>如此入队操作就可以简单理解为：<strong>tail 指向新节点、新节点的 prev 指向当前最后的节点，当前最后一个节点的 next 指向当前节点</strong>。</p>
+<h4 id="toc_h4_20">解锁</h4>
+<pre><code class="language-java"> public void unlock() {
+            sync.release(1);
+        }
+</code></pre>
+<p>解锁调用了 Sync 的 release 方法，下面看看这个方法都做了什么：</p>
+<pre><code>public final boolean release(int arg) {
+        if (tryRelease(arg)) {
+            Node h = head;
+            if (h != null &amp;&amp; h.waitStatus != 0)
+		// 唤醒节点
+                unparkSuccessor(h);
+            return true;
+        }
+        return false;
+    }
+</code></pre>
+<p>与加锁类似，tryRelease(arg) 由 AQS 的子类自行重写，</p>
+<pre><code class="language-java">protected final boolean tryRelease(int releases) {
+            if (!isHeldExclusively())
+                throw new IllegalMonitorStateException();
+            int nextc = getState() - releases;
+            boolean free = exclusiveCount(nextc) == 0;
+            if (free)
+                setExclusiveOwnerThread(null);
+            setState(nextc);
+            return free;
+        }
+</code></pre>
+<p>释放锁比较简单，**释放锁的实现是通过 CAS 修改 waitStatus 为 0 来实现的，然后通过 <code>LockSupport.unpark(s.thread)</code> 唤醒线程 **。</p>
+<p>为了方便理解，在这里总结一下 WriteLock 的工作流程图：</p>
+<p>❀ 加锁操作</p>
+<p><img src="https://img.hacpai.com/file/2019/12/image-917af572.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="image.png"></p>
+<h3 id="toc_h3_21">读锁 （共享式）</h3>
+<p>读锁的加锁操作与写锁类似：</p>
+<pre><code class="language-java">public void lock() {
+            sync.acquireShared(1);
+        }
+</code></pre>
+<p>调用自定义的 tryAcquireShared(arg) 方法获取同步状态</p>
+<pre><code class="language-java">public final void acquireShared(int arg) {
+        if (tryAcquireShared(arg) &lt; 0)
+            doAcquireShared(arg);
+    }
+</code></pre>
+<p>如果获取失败，调用 doAcquireShared(int arg) 方法<strong>自旋方式获取同步状态</strong>：</p>
+<pre><code class="language-java">private void doAcquireShared(int arg) {
+        final Node node = addWaiter(Node.SHARED);
+        boolean failed = true;
+        try {
+            boolean interrupted = false;
+            for (;;) {
+                final Node p = node.predecessor();
+                if (p == head) {
+                    int r = tryAcquireShared(arg);
+                    if (r &gt;= 0) {
+                        setHeadAndPropagate(node, r);
+                        p.next = null; // help GC
+                        if (interrupted)
+                            selfInterrupt();
+                        failed = false;
+                        return;
+                    }
+                }
+                if (shouldParkAfterFailedAcquire(p, node) &amp;&amp;
+                    parkAndCheckInterrupt())
+                    interrupted = true;
+            }
+        } finally {
+            if (failed)
+                cancelAcquire(node);
+        }
+    }
+</code></pre>
+<p>再看一下 tryAcquireShared(int unused) 方法：</p>
+<pre><code class="language-java"> protected final int tryAcquireShared(int unused) {
+        
+            Thread current = Thread.currentThread();
+            int c = getState();
+	    // 如果其他线程已经获取了写锁，则当前线程获取读锁失败，进入等待状态
+            if (exclusiveCount(c) != 0 &amp;&amp;
+                getExclusiveOwnerThread() != current)
+                return -1;
+            int r = sharedCount(c);
+            if (!readerShouldBlock() &amp;&amp;
+                r &lt; MAX_COUNT &amp;&amp;
+                compareAndSetState(c, c + SHARED_UNIT)) {
+                if (r == 0) {
+                    firstReader = current;
+                    firstReaderHoldCount = 1;
+                } else if (firstReader == current) {
+                    firstReaderHoldCount++;
+                } else {
+                    HoldCounter rh = cachedHoldCounter;
+                    if (rh == null || rh.tid != getThreadId(current))
+                        cachedHoldCounter = rh = readHolds.get();
+                    else if (rh.count == 0)
+                        readHolds.set(rh);
+                    rh.count++;
+                }
+                return 1;
+            }
+            return fullTryAcquireShared(current);
+        }
+</code></pre>
+<blockquote>
+<p>在这个方法中可以知道，如果其他线程已经获取了写锁，则当前线程获取读锁失败，进入等待状态。如果当前线程获取了写锁或者写锁未被获取，则当前线程增加读状态，成功获取读锁。</p>
+</blockquote>
+<h2 id="toc_h2_22">六、结语</h2>
+<p>可能读完之后小伙伴并没有整明白，反而更懵逼了；或者根本没有读完。概念比较多，贴的代码也比较多，可以配合其中几个比较重要的图去理解，几个比较关键的点：锁的分类思维导图、AQS、CAS、写锁的加锁实现过程图。由于笔者水平所限，如上都是在学习的过程中总结、整理所得，仅供参考。</p>
+                    <div>
+                        <hr>
+
+标题：一文带你整明白Java的N种锁<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2019/11/21/1433223.html" target="_blank">https://aysaml.github.io/articles/2019/11/21/1433223.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h3">
+            <a href="#toc_h3_0">温馨提示：本文内容较长废话较多，如有心脏病、精神病史等请酌情查看。</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_1">一、概述</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_2">二、synchronized 带你跑毒</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_3">三、各种锁的解释，猥琐发育捡枪捡子弹</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_4">偏向锁、轻量级锁、重量级锁</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_5">公平锁、非公平锁</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_6">乐观锁、悲观锁</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_7">CAS（比较和交换）</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_8">可重入锁</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_9">可中断锁</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_10">独享锁、共享锁</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_11">读锁、写锁</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_12">三、CAS 在 Java 中的实现，带上这把 M4-CAS</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_13">四、AQS 给你穿上三级甲</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_14">获取锁相关方法</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_15">解锁相关方法</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_16">五、Lock 带你吃鸡</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_17">读锁写锁抽象队列同步器三级甲</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_18">写锁（独占式）</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_19">加锁</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_20">解锁</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_21">读锁 （共享式）</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_22">六、结语</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1574265649307"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1574265649307",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1574265649307",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1574265649307', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 27ms, 2020/07/29 15:41:17 -->

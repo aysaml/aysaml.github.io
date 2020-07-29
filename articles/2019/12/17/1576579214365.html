@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>Dubbo系列笔记之SPI实现 - 码恋</title><meta name="description" content="本篇主要说Dubbo SPI 的基本使用和加载拓展类的过程，以及 Dubbo 如何实现 IOC。"/><meta property="og:description" content="本篇主要说Dubbo SPI 的基本使用和加载拓展类的过程，以及 Dubbo 如何实现 IOC。"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="Dubbo系列笔记之SPI实现 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2019/12/17/1576579214365.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="Dubbo系列笔记之SPI实现 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2019/12/17/1576579214365.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="Dubbo系列笔记之特殊示例用法" href="https://aysaml.github.io/articles/2019/12/14/1576312634579.html">
+            <link rel="next" title="Dubbo 系列笔记之自适应扩展机制" href="https://aysaml.github.io/articles/2019/12/20/1576840669968.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">Dubbo系列笔记之SPI实现</div>
+<div class="article__share"
+     data-title="Dubbo系列笔记之SPI实现"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2019/12/17/1576579214365.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2019-12-20
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/dubbo">dubbo</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                Dubbo系列笔记之SPI实现
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20190928.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20190928.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h2 id="toc_h2_0">一、引言</h2>
+<p>在讲 Dubbo 的核心流程前，我想先说一下 Dubbo 的 SPI，正是有了这种服务发现机制，让 Dubbo 具有非常好的易拓展性。</p>
+<p>SPI 全称为 Service Provider Interface，是一种服务发现机制。我们知道在 Java 中有接口、有实现，接口定义了一个服务必须要实现的功能，至于实现的方式可以有多种。如果在编写代码时，不必明确写死实现类，具体要使用哪个由使用者灵活声明，那我们的服务就可以有很强的拓展性，SPI 正是为了解决这一问题。</p>
+<p>在 Java 中的 SPI 实现，具体可以参见我之前写的<a href="https://aysaml.com/articles/2019/10/18/1571392382274.html">《Java的SPI简介》</a>。</p>
+<blockquote>
+<p>SPI 的本质是将接口实现类的全限定名配置在文件中，并由服务加载器读取配置文件，加载实现类。这样可以在运行时，动态为接口替换实现类。</p>
+</blockquote>
+<p>Dubbo 作为一个扩展性非常好的开源框架，并没有沿用 Java 的 SPI，而是自己实现了一套 Dubbo SPI。</p>
+<h2 id="toc_h2_1">二、特性</h2>
+<p>Dubbo 为何要自己实现 SPI？其实答案很简单，无非是原有的功能不够完美，不够强大。</p>
+<p>Dubbo 改进了 Java SPI 的下列问题：</p>
+<blockquote>
+<ul>
+<li>JDK 标准的 SPI 会一次性实例化扩展点所有实现，如果有扩展实现初始化很耗时，但如果没用上也加载，会很浪费资源。</li>
+<li>如果扩展点加载失败，连扩展点的名称都拿不到了。比如：JDK 标准的 ScriptEngine，通过 <code>getName()</code> 获取脚本类型的名称，但如果 RubyScriptEngine 因为所依赖的 jruby.jar 不存在，导致 RubyScriptEngine 类加载失败，这个失败原因被吃掉了，和 ruby 对应不起来，当用户执行 ruby 脚本时，会报不支持 ruby，而不是真正失败的原因。</li>
+<li>增加了对扩展点 IOC 和 AOP 的支持，一个扩展点可以直接 setter 注入其它扩展点。</li>
+</ul>
+</blockquote>
+<h2 id="toc_h2_2">三、使用示例</h2>
+<p>使用 SPI 主要有四个重要的点：</p>
+<ul>
+<li>接口</li>
+<li>实现</li>
+<li>实现配置文件<br>
+Dubbo 约定配置文件在 <code>META-INF/dubbo/</code> 目录下。</li>
+<li>服务加载/调用<br>
+Dubbo 对 SPI 机制的实现封装在了 <code>ExtensionLoader</code> 中。</li>
+</ul>
+<hr>
+<h4 id="toc_h4_3">使用方式：</h4>
+<h5 id="toc_h5_4">1. 接口</h5>
+<pre><code class="language-java">package com.aysaml.spi;
+
+import com.alibaba.dubbo.common.extension.SPI;
+
+/**
+ * Say hello demo interface.
+ *
+ * @author wangning
+ * @date 2019-12-19
+ */
+@SPI("demo")
+public interface DemoService {
+
+   void sayHello();
+}
+
+</code></pre>
+<blockquote>
+<p>❤️ 注意：<br>
+在扩展的接口上必须加 <code>@SPI</code> 注解。</p>
+</blockquote>
+<h5 id="toc_h5_5">2. 实现</h5>
+<ul>
+<li>服务 A
+<pre><code class="language-java">	package com.aysaml.spi.impl;
+
+	import com.aysaml.spi.DemoService;
+
+	/**
+	 * Say hello demo impl.
+	 *
+	 * @author wangning
+	 * @date 2019-12-19
+	 */
+	public class DemoServiceImplA implements DemoService {
+
+	  public void sayHello() {
+	    System.out.println("hello! This is A.");
+	  }
+	}
+
+</code></pre>
+</li>
+<li>服务 B
+<pre><code class="language-java">	package com.aysaml.spi.impl;
+
+	import com.aysaml.spi.DemoService;
+
+	/**
+	 * Say hello demo impl.
+	 *
+	 * @author wangning
+	 * @date 2019-12-19
+	 */
+	public class DemoServiceImplB implements DemoService {
+
+	  public void sayHello() {
+	    System.out.println("Hello! This is B.");
+	  }
+	}
+
+</code></pre>
+</li>
+</ul>
+<h5 id="toc_h5_6">3. 添加配置文件</h5>
+<ul>
+<li>在META-INF/dubbo/ 目录下新建 文件，文件名为接口的全限定名 <code>com.aysaml.spi.DemoService</code>。</li>
+<li>在文件中添加实现配置：
+<pre><code class="language-text">	serviceA = com.aysaml.spi.impl.DemoServiceImplA
+	serviceB = com.aysaml.spi.impl.DemoServiceImplB
+</code></pre>
+</li>
+</ul>
+<p>如图：<br>
+<img src="https://img.hacpai.com/file/2019/12/图片-9e144242.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="123.png"></p>
+<blockquote>
+<p>❤️ 注意：<br>
+与 Java 的 SPI 相比配置有下面两点不同</p>
+<ol>
+<li>配置目录不同：Java SPI 为 META-INF/services/；Dubbo SPI 为 META-INF/dubbo/</li>
+<li>配置方式不同：Java SPI 直接配置为服务实现的全限定名；Dubbo SPI 则采用 key-value 的形式，为服务实现指定别名，方便按需加载。内容为：<code>配置名=扩展实现类全限定名</code>，多个实现类用换行符分隔。</li>
+</ol>
+</blockquote>
+<h5 id="toc_h5_7">4. 服务加载调用</h5>
+<pre><code class="language-java">package com.aysaml.spi;
+
+import com.alibaba.dubbo.common.extension.ExtensionLoader;
+
+/**
+ * The run dubbo SPI test.
+ *
+ * @author wangning
+ * @date 2019-12-19
+ */
+public class SpiTest {
+
+  public static void main(String[] args) {
+      ExtensionLoader&lt;DemoService&gt; loader = ExtensionLoader.getExtensionLoader(DemoService.class);
+      // service A
+      DemoService serviceA = loader.getExtension("serviceA");
+      serviceA.sayHello();
+
+      // service B
+      DemoService serviceB = loader.getExtension("serviceB");
+      serviceB.sayHello();
+  }
+}
+
+</code></pre>
+<p>效果如下：</p>
+<p><img src="https://img.hacpai.com/file/2019/12/图片-7ccbedbc.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="图片.png"></p>
+<h2 id="toc_h2_8">四、源码一览</h2>
+<blockquote>
+<p>Dubbo 关于 SPI 的实现在 <code>dubbo-common</code> 模块下的 <code>com.alibaba.dubbo.common.extension</code> 包下。</p>
+</blockquote>
+<p><img src="https://img.hacpai.com/file/2019/12/图片-864c5f68.png?imageView2/2/w/1280/format/jpg/interlace/1/q/100" alt="图片.png"></p>
+<p>在上面演示了 Dubbo SPI 的用法，其中使用<code>ExtensionLoader.getExtensionLoader(DemoService.class)</code> 方法获得了一个 <code>ExtensionLoader</code> 实例。然后通过<code>ExtensionLoader</code> 的  <code>getExtension("serviceA")</code> 方法获得拓展的类实现 ServiceA，这一系列操作都依赖于拓展加载器 <code>ExtensionLoader</code> 。</p>
+<p>首先，从 ExtensionLoader 的 getExtensionLoader 方法入手，来说一下 Dubbo SPI 是如何获得拓展的类实现的。</p>
+<ul>
+<li>
+<p>getExtensionLoader 方法</p>
+<pre><code class="language-java">
+	    /**
+	     * 根据接口类型获取拓展加载器
+	     * 
+	     * @param type
+	     * @param &lt;T&gt;
+	     * @return
+	     */
+	    @SuppressWarnings("unchecked")
+	    public static &lt;T&gt; ExtensionLoader&lt;T&gt; getExtensionLoader(Class&lt;T&gt; type) {
+	        // 参数验证为空
+	        if (type == null)
+	            throw new IllegalArgumentException("Extension type == null");
+	        // 是否是接口
+	        if (!type.isInterface()) {
+	            throw new IllegalArgumentException("Extension type(" + type + ") is not interface!");
+	        }
+	        // 接口是否加了 @SPI 注解
+	        if (!withExtensionAnnotation(type)) {
+	            throw new IllegalArgumentException("Extension type(" + type +
+	                    ") is not extension, because WITHOUT @" + SPI.class.getSimpleName() + " Annotation!");
+	        }
+	        // EXTENSION_LOADERS 是一个 map ，以接口类型为 key ，拓展加载器 ExtensionLoader 为 value。
+	        // 通过 map 做一个缓存，首先从缓存中取
+	        ExtensionLoader&lt;T&gt; loader = (ExtensionLoader&lt;T&gt;) EXTENSION_LOADERS.get(type);
+	        // 缓存未命中
+	        if (loader == null) {
+	            // 创建一个拓展加载器，并加入缓存
+	            EXTENSION_LOADERS.putIfAbsent(type, new ExtensionLoader&lt;T&gt;(type));
+	            loader = (ExtensionLoader&lt;T&gt;) EXTENSION_LOADERS.get(type);
+	        }
+	        return loader;
+	    }
+</code></pre>
+</li>
+</ul>
+<p>由上成功获取了拓展加载器，接着调用 <code>ExtensionLoader</code> 的  <code>getExtension("serviceA")</code> 方法获得拓展的类实现。</p>
+<ul>
+<li>
+<p>getExtension 方法</p>
+<pre><code class="language-java">	   /**
+	     * 返回指定名字的拓展类对象。 如果名字未找到则抛出 {@link IllegalStateException} 异常。
+	     *
+	     * @param name
+	     * @return
+	     */
+	    @SuppressWarnings("unchecked")
+	    public T getExtension(String name) {
+	        // 参数验证
+	        if (name == null || name.length() == 0)
+	            throw new IllegalArgumentException("Extension name == null");
+	        if ("true".equals(name)) {
+	            // 若 name 为 true，则获取默认的拓展类实现
+	            return getDefaultExtension();
+	        }
+	        // Holder 作为一个缓存，持有拓展对象，从缓存中获得拓展对象
+	        Holder&lt;Object&gt; holder = cachedInstances.get(name);
+	        if (holder == null) {
+	            cachedInstances.putIfAbsent(name, new Holder&lt;Object&gt;());
+	            holder = cachedInstances.get(name);
+	        }
+	        Object instance = holder.get();
+	        // 这里比较有意思，锁的双重检查
+	        if (instance == null) {
+	            synchronized (holder) {
+	                instance = holder.get();
+	                // 如果缓存中没有
+	                if (instance == null) {
+	                    // 创建类拓展对象
+	                    instance = createExtension(name);
+	                    // 加入缓存
+	                    holder.set(instance);
+	                }
+	            }
+	        }
+	        return (T) instance;
+	    }
+</code></pre>
+</li>
+</ul>
+<p>接下来继续看 createExtension 方法怎么创建类拓展对象，</p>
+<ul>
+<li>
+<p>createExtension 方法</p>
+<pre><code class="language-java">	/**
+	     * 根据名字创建类拓展对象
+	     *
+	     * @param name
+	     * @return
+	     */
+	    @SuppressWarnings("unchecked")
+	    private T createExtension(String name) {
+	        // 通过名字获取拓展类实现的 class 对象
+	        Class&lt;?&gt; clazz = getExtensionClasses().get(name);
+	        // 没有实现类，抛出未找到异常
+	        if (clazz == null) {
+	            throw findException(name);
+	        }
+	        try {
+	            // 从缓存中取拓展类对象
+	            T instance = (T) EXTENSION_INSTANCES.get(clazz);
+	            // 未命中缓存，创建类拓展对象并加入缓存
+	            if (instance == null) {
+	                EXTENSION_INSTANCES.putIfAbsent(clazz, clazz.newInstance());
+	                instance = (T) EXTENSION_INSTANCES.get(clazz);
+	            }
+	            // 通过反射注入依赖的属性
+	            injectExtension(instance);
+	            Set&lt;Class&lt;?&gt;&gt; wrapperClasses = cachedWrapperClasses;
+	            if (wrapperClasses != null &amp;&amp; !wrapperClasses.isEmpty()) {
+	                // 循环创建 Wrapper 拓展对象
+	                for (Class&lt;?&gt; wrapperClass : wrapperClasses) {
+	                    // 将 instance 作为参数传给 Wrapper拓展对象的构造方法，并通过反射创建 Wrapper 实例
+	                    // 然后向 Wrapper 实例中注入依赖，再将 Wrapper 的实例赋值给 instance
+	                    instance = injectExtension((T) wrapperClass.getConstructor(type).newInstance(instance));
+	                }
+	            }
+	            return instance;
+	        } catch (Throwable t) {
+	            throw new IllegalStateException("Extension instance(name: " + name + ", class: " +
+	                    type + ")  could not be instantiated: " + t.getMessage(), t);
+	        }
+	    }
+</code></pre>
+<p>如此，再对创建类拓展对象的步骤做一个总结：</p>
+<blockquote>
+<ol>
+<li>获取拓展类实现的所有 class 对象。</li>
+<li>通过 clazz.newInstance() 方法创建类拓展对象。</li>
+<li>通过反射注入依赖的属性。</li>
+<li>将拓展对象包裹在相应的 Wrapper 对象中。<br>
+Wrapper 对类拓展对象进行了包装、代理，至于他到底为什么这么做，我们在 Dubbo 的扩展点加载中说明。</li>
+</ol>
+</blockquote>
+</li>
+</ul>
+<p>在上面说创建类拓展对象的步骤中，第一步是创建拓展类的的关键，第三步和第四步是 Dubbo IOC 和 AOP 的实现。下面分别来看看具体是如何实现的：</p>
+<ul>
+<li>
+<p>createExtension 方法</p>
+<pre><code class="language-java">	    /**
+	     * 获取所有的拓展类 class 对象
+	     * 
+	     * @return
+	     */
+	    private Map&lt;String, Class&lt;?&gt;&gt; getExtensionClasses() {
+	        // cachedClasses 缓存了所有的拓展类 class 对象
+	        // 首先从缓存中取
+	        Map&lt;String, Class&lt;?&gt;&gt; classes = cachedClasses.get();
+	        if (classes == null) {
+	            synchronized (cachedClasses) {
+	                classes = cachedClasses.get();
+	                if (classes == null) {
+	                    // 从配置文件中读取拓展类 class 对象
+	                    classes = loadExtensionClasses();
+	                    // 加入缓存
+	                    cachedClasses.set(classes);
+	                }
+	            }
+	        }
+	        return classes;
+	    }
+</code></pre>
+</li>
+</ul>
+<p>这个方法逻辑比较简单，首先从缓存中取，没有取到就从配置文件中读取拓展类，然后加入缓存。接下来我们继续看怎么从配置文件中读取拓展类：</p>
+<ul>
+<li>loadExtensionClasses 方法
+<pre><code class="language-java">	   /**
+	     * 从配置文件中读取拓展类
+	     *
+	     * @return
+	     */
+	    private Map&lt;String, Class&lt;?&gt;&gt; loadExtensionClasses() {
+	        // 这个 type 从哪来的呢？type 是当前拓展类的接口类型，在获取拓展类加载器传入的
+	        // 获取接口的 @SPI 注解，这里就是当初为什么拓展类接口必须标注 @SPI 的原因，哈哈哈
+	        final SPI defaultAnnotation = type.getAnnotation(SPI.class);
+	        if (defaultAnnotation != null) {
+	            // 获取 @SPI 注解的 value , 即定义的拓展名称
+	            String value = defaultAnnotation.value();
+	            // 对名字一系列校验，不能有特殊字符什么的
+	            if ((value = value.trim()).length() &gt; 0) {
+	                String[] names = NAME_SEPARATOR.split(value);
+	                if (names.length &gt; 1) {
+	                    throw new IllegalStateException("more than 1 default extension name on extension " + type.getName()
+	                            + ": " + Arrays.toString(names));
+	                }
+	                // 设置默认的名称
+	                if (names.length == 1) cachedDefaultName = names[0];
+	            }
+	        }
+
+	        Map&lt;String, Class&lt;?&gt;&gt; extensionClasses = new HashMap&lt;String, Class&lt;?&gt;&gt;();
+	        // 从三种不同的目录下读取加载，其中还包含了 Java SPI 的路径
+	        loadDirectory(extensionClasses, DUBBO_INTERNAL_DIRECTORY);
+	        loadDirectory(extensionClasses, DUBBO_DIRECTORY);
+	        loadDirectory(extensionClasses, SERVICES_DIRECTORY);
+	        return extensionClasses;
+	    }
+</code></pre>
+</li>
+</ul>
+<p>同样，这个方法也比较简单，首先获取 @SPI 注解，对注解的 value 处理，设置拓展默认名称，然后分别从不同的文件夹路径读取加载拓展类。</p>
+<p>所以，接下来看从不同路径读取加载拓展类方法的实现：</p>
+<ul>
+<li>
+<p>loadDirectory 方法</p>
+<pre><code class="language-java">	   /**
+	     * 从指定目录加载指定的拓展类
+	     *
+	     * @param extensionClasses
+	     * @param dir
+	     */
+	    private void loadDirectory(Map&lt;String, Class&lt;?&gt;&gt; extensionClasses, String dir) {
+	        // 路径加接口全限定名
+	        String fileName = dir + type.getName();
+	        try {
+	            // 用来保存配置文件链接
+	            Enumeration&lt;java.net.URL&gt; urls;
+	            // 获取类加载器
+	            ClassLoader classLoader = findClassLoader();
+	            if (classLoader != null) {
+	                urls = classLoader.getResources(fileName);
+	            } else {
+	                urls = ClassLoader.getSystemResources(fileName);
+	            }
+	            if (urls != null) {
+	                while (urls.hasMoreElements()) {
+	                    java.net.URL resourceURL = urls.nextElement();
+	                    // 循环加载资源
+	                    loadResource(extensionClasses, classLoader, resourceURL);
+	                }
+	            }
+	        } catch (Throwable t) {
+	            logger.error("Exception when load extension class(interface: " +
+	                    type + ", description file: " + fileName + ").", t);
+	        }
+	    }
+</code></pre>
+</li>
+</ul>
+<p>这个方法就是通过类加载器获取对应的所有配置的资源链接，然后通过 loadResource 方法加载资源，接下来继续看 loadResource 方法：</p>
+<ul>
+<li>
+<p>loadResource 方法</p>
+<pre><code class="language-java">	    /**
+	     * 加载拓展类实现
+	     *
+	     * @param extensionClasses
+	     * @param classLoader
+	     * @param resourceURL
+	     */
+	    private void loadResource(Map&lt;String, Class&lt;?&gt;&gt; extensionClasses, ClassLoader classLoader, java.net.URL resourceURL) {
+	        try {
+	            // 读取配置文件
+	            BufferedReader reader = new BufferedReader(new InputStreamReader(resourceURL.openStream(), "utf-8"));
+	            try {
+	                String line;
+	                while ((line = reader.readLine()) != null) {
+	                    // 注释处理
+	                    final int ci = line.indexOf('#');
+	                    if (ci &gt;= 0) line = line.substring(0, ci);
+	                    line = line.trim();
+	                    if (line.length() &gt; 0) {
+	                        try {
+	                            String name = null;
+	                            // 等号下标
+	                            int i = line.indexOf('=');
+	                            if (i &gt; 0) {
+	                                // 等号之前是拓展类名字
+	                                name = line.substring(0, i).trim();
+	                                // 等号之后是拓展的实现类
+	                                line = line.substring(i + 1).trim();
+	                            }
+	                            if (line.length() &gt; 0) {
+	                                // 通过 Class.forName 反射加载拓展类，具体的下面看
+	                                loadClass(extensionClasses, resourceURL, Class.forName(line, true, classLoader), name);
+	                            }
+	                        } catch (Throwable t) {
+	                            IllegalStateException e = new IllegalStateException("Failed to load extension class(interface: " + type + ", class line: " + line + ") in " + resourceURL + ", cause: " + t.getMessage(), t);
+	                            exceptions.put(line, e);
+	                        }
+	                    }
+	                }
+	            } finally {
+	                reader.close();
+	            }
+	        } catch (Throwable t) {
+	            logger.error("Exception when load extension class(interface: " +
+	                    type + ", class file: " + resourceURL + ") in " + resourceURL, t);
+	        }
+	    }
+</code></pre>
+</li>
+</ul>
+<p>loadResource 方法主要处理配置文件的读取、解析和拓展实现类的加载。下面我们接着看  loadClass 方法都做了什么：</p>
+<ul>
+<li>
+<p>loadClass</p>
+<pre><code class="language-java">	   /**
+	     * 各种缓存操作
+	     *
+	     * @param extensionClasses
+	     * @param resourceURL
+	     * @param clazz
+	     * @param name
+	     * @throws NoSuchMethodException
+	     */
+	    private void loadClass(Map&lt;String, Class&lt;?&gt;&gt; extensionClasses, java.net.URL resourceURL, Class&lt;?&gt; clazz, String name) throws NoSuchMethodException {
+	        // 校验加载的类是否是当前接口的实现
+	        if (!type.isAssignableFrom(clazz)) {
+	            throw new IllegalStateException("Error when load extension class(interface: " +
+	                    type + ", class line: " + clazz.getName() + "), class "
+	                    + clazz.getName() + "is not subtype of interface.");
+	        }
+	        // 是否有 @Adaptive 注解
+	        // @Adaptive 是什么呢，与自适应扩展有关，这个后面看
+	        if (clazz.isAnnotationPresent(Adaptive.class)) {
+	            if (cachedAdaptiveClass == null) {
+	                // 缓存
+	                cachedAdaptiveClass = clazz;
+	            } else if (!cachedAdaptiveClass.equals(clazz)) {
+	                // 只能有一个自适应扩展类
+	                throw new IllegalStateException("More than 1 adaptive class found: "
+	                        + cachedAdaptiveClass.getClass().getName()
+	                        + ", " + clazz.getClass().getName());
+	            }
+	            // Wrapper 类型的
+	        } else if (isWrapperClass(clazz)) {
+	            Set&lt;Class&lt;?&gt;&gt; wrappers = cachedWrapperClasses;
+	            if (wrappers == null) {
+	                // 缓存
+	                cachedWrapperClasses = new ConcurrentHashSet&lt;Class&lt;?&gt;&gt;();
+	                wrappers = cachedWrapperClasses;
+	            }
+	            wrappers.add(clazz);
+	            // 普通类型的拓展类
+	        } else {
+	            clazz.getConstructor();
+	            // 拓展类名字为空
+	            if (name == null || name.length() == 0) {
+	                // 从 @Extension 注解获取名字，或者直接使用类型小写作为名字
+	                name = findAnnotationName(clazz);
+	                if (name.length() == 0) {
+	                    throw new IllegalStateException("No such extension name for the class " + clazz.getName() + " in the config " + resourceURL);
+	                }
+	            }
+	            String[] names = NAME_SEPARATOR.split(name);
+	            if (names != null &amp;&amp; names.length &gt; 0) {
+	                Activate activate = clazz.getAnnotation(Activate.class);
+	                // 类如果存在 @Activate 注解
+	                if (activate != null) {
+	                    // 加入其缓存
+	                    cachedActivates.put(names[0], activate);
+	                }
+	                for (String n : names) {
+	                    if (!cachedNames.containsKey(clazz)) {
+	                        // 加入 names 缓存
+	                        cachedNames.put(clazz, n);
+	                    }
+	                    Class&lt;?&gt; c = extensionClasses.get(n);
+	                    if (c == null) {
+	                        // class 缓存
+	                        extensionClasses.put(n, clazz);
+	                    } else if (c != clazz) {
+	                        throw new IllegalStateException("Duplicate extension " + type.getName() + " name " + n + " on " + c.getName() + " and " + clazz.getName());
+	                    }
+	                }
+	            }
+	        }
+	    }
+</code></pre>
+</li>
+</ul>
+<p>可以看到这个方法主要是在加载完拓展类之后做的各种类型的缓存。</p>
+<p>Dubbo SPI 拓展类的加载过程我们就了解完了，过程其实比较简单，一步一步看下来比较容易理解，如果遇到不懂的地方可以结合调试来理解。</p>
+<h2 id="toc_h2_9">五、Dubbo IOC</h2>
+<p>Dubbo 的依赖注入目前仅有一种，就是通过对象的 setter 方法进行注入。逻辑比较简单，首先获取拓展类的 setter 方法，然后再通过 objectFactory 的 getExtension 的方法获取依赖的拓展类，然后通过反射调用 setter 方法进行依赖注入。下面看下代码实现。</p>
+<pre><code class="language-java">    /**
+     * 依赖注入
+     *
+     * @param instance
+     * @return
+     */
+    private T injectExtension(T instance) {
+        try {
+            // objectFactory 是拓展类的工厂，可以通过它的 getExtension 获取扩展类
+            // 在扩展类加载器的构造方法中初始化，有两种实现 SpiExtensionFactory 和 SpringExtensionFactory
+            // SpiExtensionFactory 用于获取自适应的拓展；SpringExtensionFactory 用来从 Spring 中获取所需的拓展类
+            if (objectFactory != null) {
+                for (Method method : instance.getClass().getMethods()) {
+                    // Dubbo 通过 setter 实现依赖注入
+                    // 获取本扩展类的 set 方法
+                    if (method.getName().startsWith("set")
+                            &amp;&amp; method.getParameterTypes().length == 1
+                            &amp;&amp; Modifier.isPublic(method.getModifiers())) {
+                        // 有 @DisableInject 注解的 set 不需要依赖注入
+                        if (method.getAnnotation(DisableInject.class) != null) {
+                            continue;
+                        }
+                        // 获取参数 class 对象
+                        Class&lt;?&gt; pt = method.getParameterTypes()[0];
+                        try {
+                            // 获取属性名，也就是 set 方法后面的第一个字母变小写 0.0
+                            String property = method.getName().length() &gt; 3 ? method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4) : "";
+                            // 通过拓展工厂获取拓展类
+                            Object object = objectFactory.getExtension(pt, property);
+                            if (object != null) {
+                                // 通过反射调用 set 方法注入
+                                method.invoke(instance, object);
+                            }
+                        } catch (Exception e) {
+                            logger.error("fail to inject via method " + method.getName()
+                                    + " of interface " + type.getName() + ": " + e.getMessage(), e);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return instance;
+    }
+</code></pre>
+<h2 id="toc_h2_10">六、总结</h2>
+<p>关于 Dubbo SPI 的基本使用和它的加载拓展类的过程到现在就了解完了，Dubbo 对 Java SPI 的功能做了扩展，实现了可以按需加载拓展类实现，节省了资源，同时增加了 IOC 和 AOP 特性 。限于篇幅，其实关于 Dubbo SPI 还有一部分比较重要的没有说，即 Dubbo SPI 的扩展点自适应机制。那么扩展点自适应机制到底是什么呢？我们将会在下篇做讨论。</p>
+                    <div>
+                        <hr>
+
+标题：Dubbo系列笔记之SPI实现<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2019/12/17/1576579214365.html" target="_blank">https://aysaml.github.io/articles/2019/12/17/1576579214365.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h2">
+            <a href="#toc_h2_0">一、引言</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_1">二、特性</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_2">三、使用示例</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_3">使用方式：</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_4">1. 接口</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_5">2. 实现</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_6">3. 添加配置文件</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_7">4. 服务加载调用</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_8">四、源码一览</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_9">五、Dubbo IOC</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_10">六、总结</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1576579214365"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1576579214365",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1576579214365",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1576579214365', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 37ms, 2020/07/29 15:41:16 -->

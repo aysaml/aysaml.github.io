@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>Dubbo 系列笔记之自适应扩展机制 - 码恋</title><meta name="description" content="Dubbo 自适应扩展机制源码分析。"/><meta property="og:description" content="Dubbo 自适应扩展机制源码分析。"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="Dubbo 系列笔记之自适应扩展机制 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2019/12/20/1576840669968.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="Dubbo 系列笔记之自适应扩展机制 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2019/12/20/1576840669968.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="Dubbo系列笔记之SPI实现" href="https://aysaml.github.io/articles/2019/12/17/1576579214365.html">
+            <link rel="next" title="Dubbo源码阅读笔记" href="https://aysaml.github.io/articles/2020/01/04/1578130888106.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">Dubbo 系列笔记之自适应扩展机制</div>
+<div class="article__share"
+     data-title="Dubbo 系列笔记之自适应扩展机制"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2019/12/20/1576840669968.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2020-07-14
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/dubbo">dubbo</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                Dubbo 系列笔记之自适应扩展机制
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20191106.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20191106.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<h2 id="toc_h2_0">一、引言</h2>
+<p>上一篇我们说了 Dubbo SPI 的扩展类加载过程以及 Dubbo IOC 的实现，Dubbo 的很多扩展都是基于 SPI 来加载的，如 Cluster、Protocol 等等。有时，我们希望有些扩展不在框架启动的时候就加载，而是想在扩展方法被调用的时候，通过动态参数按需加载。</p>
+<p>这就产生了一个问题，我想调用扩展方法（非静态），但是扩展还没有被加载。也就是说，扩展类还没有被 new 出实例，那么就不能调用其方法。想要调用方法，必须提前加载扩展类，而我们不想在框架启动时就加载，死循环...</p>
+<h2 id="toc_h2_1">二、理解自适应扩展</h2>
+<p>对于上面的问题，Dubbo 使用自适应扩展机制解决。同时官方文档中还为我们提供了一个例子帮助理解什么是自适应扩展，如下：</p>
+<ul>
+<li>车轮制造接口 <code>WheelMaker</code></li>
+</ul>
+<pre><code class="language-java">public interface WheelMaker {
+    Wheel makeWheel(URL url);
+}
+</code></pre>
+<ul>
+<li><code>WheelMaker</code> 接口的自适应实现类 <code>AdaptiveWheelMaker</code></li>
+</ul>
+<pre><code class="language-java">public class AdaptiveWheelMaker implements WheelMaker {
+    public Wheel makeWheel(URL url) {
+        if (url == null) {
+            throw new IllegalArgumentException("url == null");
+        }
+        
+    	// 1.从 URL 中获取 WheelMaker 名称
+        String wheelMakerName = url.getParameter("Wheel.maker");
+        if (wheelMakerName == null) {
+            throw new IllegalArgumentException("wheelMakerName == null");
+        }
+        
+        // 2.通过 SPI 加载具体的 WheelMaker
+        WheelMaker wheelMaker = ExtensionLoader
+            .getExtensionLoader(WheelMaker.class).getExtension(wheelMakerName);
+        
+        // 3.调用目标方法
+        return wheelMaker.makeWheel(url);
+    }
+}
+</code></pre>
+<p><code>AdaptiveWheelMaker</code> 做了三件事情：</p>
+<blockquote>
+<ol>
+<li>从给定参数中获取扩展名称</li>
+<li>通过 SPI 加载特定的扩展类</li>
+<li>调用扩展类方法返回执行结果</li>
+</ol>
+</blockquote>
+<ul>
+<li>接下来，我们来看看汽车制造厂 CarMaker 接口与其实现类。</li>
+</ul>
+<pre><code class="language-java">public interface CarMaker {
+    Car makeCar(URL url);
+}
+
+public class RaceCarMaker implements CarMaker {
+    WheelMaker wheelMaker;
+ 
+    // 通过 setter 注入 AdaptiveWheelMaker
+    public setWheelMaker(WheelMaker wheelMaker) {
+        this.wheelMaker = wheelMaker;
+    }
+ 
+    public Car makeCar(URL url) {
+        Wheel wheel = wheelMaker.makeWheel(url);
+        return new RaceCar(wheel, ...);
+    }
+}
+</code></pre>
+<p>注意到 <code>RaceCarMaker</code> 有一个成员变量 <code>wheelMaker</code> ，在程序运行时我们将 <code>AdaptiveWheelMaker</code> 通过 setter 方法注入到 <code>RaceCarMaker</code> 中，这样当传入一个 URL 参数时，就可以调用 <code>AdaptiveWheelMaker</code> 的 <code>makeWheel(URL url)</code> 方法解析 URL 参数，通过 SPI 加载特定的扩展类并调用其方法放回一个 <code>Wheel</code> 对象。</p>
+<p>如上，就是 Dubbo 的自适应扩展机制的基本原理：<strong>当扩展接口的方法被调用时，生成扩展代理类并通过 SPI 加载具体的扩展实现，调用扩展对象的同名方法。</strong></p>
+<p>也就是说，<strong>Dubbo 自适应扩展机制解决了在调用扩展接口方法时，扩展类未被加载方法不能调用的问题。</strong></p>
+<h2 id="toc_h2_2">三、源码一探</h2>
+<p>接下来，我们跟随 Dubbo 源码，看自适应扩展机制如何实现。</p>
+<h3 id="toc_h3_3">1. @Adaptive 注解</h3>
+<p>在文章开始就说到 Cluster 是基于 SPI 来加载的，所以看下 Cluster 接口：</p>
+<pre><code class="language-java">@SPI(Cluster.DEFAULT)
+public interface Cluster {
+    String DEFAULT = FailoverCluster.NAME;
+
+    /**
+     * Merge the directory invokers to a virtual invoker.
+     *
+     * @param &lt;T&gt;
+     * @param directory
+     * @return cluster invoker
+     * @throws RpcException
+     */
+    @Adaptive
+    &lt;T&gt; Invoker&lt;T&gt; join(Directory&lt;T&gt; directory) throws RpcException;
+
+    static Cluster getCluster(String name) {
+        return getCluster(name, true);
+    }
+
+    static Cluster getCluster(String name, boolean wrap) {
+        if (StringUtils.isEmpty(name)) {
+            name = Cluster.DEFAULT;
+        }
+        return ExtensionLoader.getExtensionLoader(Cluster.class).getExtension(name, wrap);
+    }
+}
+</code></pre>
+<p>可以看到 <code>Join(Directory&lt;T&gt; directory)</code> 方法上面加了一个 @Adaptive 的注解，该注解如下：</p>
+<pre><code class="language-java">/**
+ * Provide helpful information for {@link ExtensionLoader} to inject dependency extension instance.
+ *
+ * @see ExtensionLoader
+ * @see URL
+ */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface Adaptive {
+    String[] value() default {};
+}
+</code></pre>
+<blockquote>
+<p>当 Adaptive 注解在类上时，Dubbo 不会为该类生成代理类。注解在方法（接口方法）上时，Dubbo 则会为该方法生成代理逻辑。Adaptive 注解在类上的情况很少，在 Dubbo 中，仅有两个类被 Adaptive 注解了，分别是 AdaptiveCompiler 和 AdaptiveExtensionFactory。此种情况，表示拓展的加载逻辑由人工编码完成。更多时候，Adaptive 是注解在接口方法上的，表示拓展的加载逻辑需由框架自动生成。</p>
+</blockquote>
+<p>通过注释我们可以知道 <code>@Adaptive</code> 是帮助 <code>ExtensionLoader</code> 注入依赖的扩展实例。</p>
+<h3 id="toc_h3_4">2. getAdaptiveExtension( ) 方法</h3>
+<p>跟随注释我们进入 <code>ExtensionLoader</code> 一探究竟，注意到与自适应拓展相关的有一个关键方法 <code>public T getAdaptiveExtension()</code> ：</p>
+<pre><code class="language-java">public T getAdaptiveExtension() {
+        // 缓存中取
+        Object instance = cachedAdaptiveInstance.get();
+	// 缓存未命中
+        if (instance == null) {
+            if (createAdaptiveInstanceError != null) {
+                throw new IllegalStateException("Failed to create adaptive instance: " +
+                        createAdaptiveInstanceError.toString(),
+                        createAdaptiveInstanceError);
+            }
+
+            synchronized (cachedAdaptiveInstance) {
+                instance = cachedAdaptiveInstance.get();
+                if (instance == null) {
+                    try {
+                        // 创建自适应扩展实例
+                        instance = createAdaptiveExtension();
+                        // 加入缓存
+                        cachedAdaptiveInstance.set(instance);
+                    } catch (Throwable t) {
+                        createAdaptiveInstanceError = t;
+                        throw new IllegalStateException("Failed to create adaptive instance: " + t.toString(), t);
+                    }
+                }
+            }
+        }
+
+        return (T) instance;
+    }
+</code></pre>
+<p><code>getAdaptiveExtension( )</code> 逻辑比较简单，首先从缓存中取，没有取到就调用 <code>createAdaptiveExtension( )</code> 方法创建自适应扩展，然后加入缓存。</p>
+<p>接下来我们继续看 <code>createAdaptiveExtension( )</code> 方法：</p>
+<pre><code class="language-java">private T createAdaptiveExtension() {
+        try {
+            // 获取自适应扩展类，并通过反射实例化
+            return injectExtension((T) getAdaptiveExtensionClass().newInstance());
+        } catch (Exception e) {
+            throw new IllegalStateException("Can't create adaptive extension " + type + ", cause: " + e.getMessage(), e);
+        }
+    }
+</code></pre>
+<p>可以看到其中比较关键的一行代码，<code>return injectExtension((T) getAdaptiveExtensionClass().newInstance());</code> ，它<br>
+执行了三个方法，下面说明：</p>
+<ul>
+<li>injectExtension()<br>
+这个方法是为了向扩展实例中注入自适应扩展依赖，在 Dubbo 中有两种形式的自适应拓展，一种是 Dubbo 自动生成的不需要注入；另一种是开发者手动编写的，需要调用这个方法注入依赖。</li>
+</ul>
+<pre><code class="language-java">private T injectExtension(T instance) {
+
+        if (objectFactory == null) {
+            return instance;
+        }
+
+        try {
+            for (Method method : instance.getClass().getMethods()) {
+                if (!isSetter(method)) {
+                    continue;
+                }
+                // 加 @DisableInject 注解的方法不需要自动注入扩展
+                if (method.getAnnotation(DisableInject.class) != null) {
+                    continue;
+                }
+                // 方法的返回值如果是基本类型，int/long等等，包括一些包装类型 String/Date/Boolean 等等，不是调用注入扩展的方法
+                Class&lt;?&gt; pt = method.getParameterTypes()[0];
+                if (ReflectUtils.isPrimitives(pt)) {
+                    continue;
+                }
+
+                try {
+                    // 获取 get 方法的属性名
+                    String property = getSetterProperty(method);
+                    // 通过 SPI 获取扩展实例
+                    Object object = objectFactory.getExtension(pt, property);
+                    if (object != null) {
+                        // 调用 set 方法注入自适应扩展实例
+                        method.invoke(instance, object);
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to inject via method " + method.getName()
+                            + " of interface " + type.getName() + ": " + e.getMessage(), e);
+                }
+
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return instance;
+    }
+</code></pre>
+<ul>
+<li><code>getAdaptiveExtensionClass( )</code> 获取自适应扩展的 Class 对象</li>
+</ul>
+<pre><code class="language-java">private Class&lt;?&gt; getAdaptiveExtensionClass() {
+        // 获取所有的扩展实现类，并加入缓存
+        getExtensionClasses();
+        // 从缓存中取
+        if (cachedAdaptiveClass != null) {
+            return cachedAdaptiveClass;
+        }
+        // 获取自适应扩展类
+        return cachedAdaptiveClass = createAdaptiveExtensionClass();
+    }
+</code></pre>
+<p>下面直接看 <code>createAdaptiveExtensionClass()</code> 方法：</p>
+<pre><code class="language-java"> private Class&lt;?&gt; createAdaptiveExtensionClass() {
+        // 通过 AdaptiveClassCodeGenerator 构建自适应扩展类代码
+        String code = new AdaptiveClassCodeGenerator(type, cachedDefaultName).generate();
+        // 获取类加载器
+        ClassLoader classLoader = findClassLoader();
+        // 获取编译器实现类
+        org.apache.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
+        // 编译代码，生成 Class 对象
+        return compiler.compile(code, classLoader);
+    }
+</code></pre>
+<p>到这里，我们可以知道，<strong>Dubbo 的自适应扩展机制中自己生成了自适应扩展的代理类</strong>，如此，不需在框架启动阶段就通过 SPI 加载所有的实现类，就可以在运行期通过动态参数调用扩展方法。</p>
+<h3 id="toc_h3_5">3. <code>AdaptiveClassCodeGenerator</code> 如何生成自适应扩展代码</h3>
+<p><code>AdaptiveClassCodeGenerator</code> 类大约有 400 行的代码，这也是 Dubbo 自适应扩展机制的核心，接下来会用较长的篇幅来说明。</p>
+<h4 id="toc_h4_6">3.1 <code>AdaptiveClassCodeGenerator</code> 构造方法</h4>
+<pre><code class="language-java">public AdaptiveClassCodeGenerator(Class&lt;?&gt; type, String defaultExtName) {
+        this.type = type;
+        this.defaultExtName = defaultExtName;
+    }
+</code></pre>
+<p>其中有两个参数，<code>type</code> 为扩展类的接口类型，<code>defaultExtName</code> 为 @SPI 中指定的默认扩展。</p>
+<h4 id="toc_h4_7">3.2 <code>generate()</code> 方法</h4>
+<p>接下来，我们从 <code>generate()</code> 方法入手：</p>
+<pre><code class="language-java">public String generate() {
+        // 判断类方法是否有 @Adaptive 注解
+        if (!hasAdaptiveMethod()) {
+            throw new IllegalStateException("No adaptive method exist on extension " + type.getName() + ", refuse to create the adaptive class!");
+        }
+        // 类结构生成，package/import/class
+        StringBuilder code = new StringBuilder();
+        // package + type 所在包
+        code.append(generatePackageInfo());
+        // import + ExtensionLoader全限定名
+        code.append(generateImports());
+        // public class + type简单名称 + $Adaptive + implements + type全限定名 + {
+        code.append(generateClassDeclaration());
+        // 生成方法
+        Method[] methods = type.getMethods();
+        for (Method method : methods) {
+            code.append(generateMethod(method));
+        }
+        code.append("}");
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(code.toString());
+        }
+        return code.toString();
+    }
+</code></pre>
+<p>继续以 <code>Cluster</code> 为例，除生成的方法外代码如下：</p>
+<pre><code class="language-java">package org.apache.dubbo.rpc.cluster;
+import org.apache.dubbo.common.extension.ExtensionLoader;
+public class Cluster$Adaptive implements org.apache.dubbo.rpc.cluster.Cluster {
+    // 省略方法代码
+}
+</code></pre>
+<h4 id="toc_h4_8">3.3 <code>generateMethod(Method method)</code> 方法</h4>
+<p>继续看 <code>generateMethod(Method method)</code> 如何生成方法：</p>
+<pre><code class="language-java">private String generateMethod(Method method) {
+        // 返回类型
+        String methodReturnType = method.getReturnType().getCanonicalName();
+        // 方法名
+        String methodName = method.getName();
+        // 生成方法内容
+        String methodContent = generateMethodContent(method);
+        // 参数
+        String methodArgs = generateMethodArguments(method);
+        // 异常
+        String methodThrows = generateMethodThrows(method);
+        return String.format(CODE_METHOD_DECLARATION, methodReturnType, methodName, methodArgs, methodThrows, methodContent);
+    }
+</code></pre>
+<ul>
+<li>生成方法内容：</li>
+</ul>
+<pre><code class="language-java">private String generateMethodContent(Method method) {
+        // 获取方法的 @Adaptive 注解
+        Adaptive adaptiveAnnotation = method.getAnnotation(Adaptive.class);
+        StringBuilder code = new StringBuilder(512);
+        // 若注解为空则抛出异常
+        if (adaptiveAnnotation == null) {
+            return generateUnsupported(method);
+        } else {
+            // 获取 URL 参数的下标
+            int urlTypeIndex = getUrlTypeIndex(method);
+
+            // 参数列表中存在 URL 类型的参数
+            if (urlTypeIndex != -1) {
+                // 为空抛出异常校验，url 赋值
+                code.append(generateUrlNullCheck(urlTypeIndex));
+            } else {
+                // 没有找到 URL 参数，调用类似 getUrl 的 getter 方法获取
+                code.append(generateUrlAssignmentIndirectly(method));
+            }
+            // 获取 @Adaptive 注解的 value 值
+            String[] value = getMethodAdaptiveValue(adaptiveAnnotation);
+            // 参数总是否有 Invocation 类型的
+            boolean hasInvocation = hasInvocationArgument(method);
+            // Invocation 类型参数空值校验
+            code.append(generateInvocationArgumentNullCheck(method));
+            // ***生成拓展名获取逻辑***
+            code.append(generateExtNameAssignment(value, hasInvocation));
+            // check extName == null?
+            code.append(generateExtNameNullCheck(value));
+            // 生成使用 SPI 加载扩展类代码
+            code.append(generateExtensionAssignment());
+
+            // return statement
+            code.append(generateReturnAndInvocation(method));
+        }
+
+        return code.toString();
+    }
+</code></pre>
+<p>在这个方法中开始就执行了获取 URL 参数的逻辑。我们知道在 Dubbo 中 URL 主要作用是为扩展点间传递数据，在 URL 中除了一些比较重要的值外，使用键值对的形式传递。</p>
+<p>组成 URL 的具体参数：</p>
+<ul>
+<li>protocol：一般是 dubbo 中的各种协议 如：dubbo thrift http zk</li>
+<li>username/password：用户名/密码</li>
+<li>host/port：主机/端口</li>
+<li>path：接口名称</li>
+<li>parameters：参数键值对</li>
+</ul>
+<p>回到这里讲的 Dubbo 自适应扩展机制，这里 <strong>URL 中携带了要执行的目标扩展名称。</strong></p>
+<h4 id="toc_h4_9">3.4  生成扩展名获取逻辑方法 <code>generateExtNameAssignment(...)</code></h4>
+<p>在上面生成方法内容的代码中有一个方法是 <code>generateExtNameAssignment(String[] value, boolean hasInvocation)</code> 。</p>
+<pre><code class="language-java">private String generateExtNameAssignment(String[] value, boolean hasInvocation) {
+        String getNameCode = null;
+        // value 是 @Adaptive 的值，主要逻辑是生成从 URL 中获取扩展名的代码
+        for (int i = value.length - 1; i &gt;= 0; --i) {
+            if (i == value.length - 1) {
+                // defaultExtName 是 @SPI 中指定的默认扩展名
+                if (null != defaultExtName) {
+                    // 上面也说了 URL 的组成，protocol 可以直接使用 get 方法获取，其他的要从参数 map 中取
+                    if (!"protocol".equals(value[i])) {
+                        if (hasInvocation) {
+                            getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
+                        } else {
+                            getNameCode = String.format("url.getParameter(\"%s\", \"%s\")", value[i], defaultExtName);
+                        }
+                    } else {
+                        getNameCode = String.format("( url.getProtocol() == null ? \"%s\" : url.getProtocol() )", defaultExtName);
+                    }
+                } else {
+                    if (!"protocol".equals(value[i])) {
+                        if (hasInvocation) {
+                            getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
+                        } else {
+                            getNameCode = String.format("url.getParameter(\"%s\")", value[i]);
+                        }
+                    } else {
+                        getNameCode = "url.getProtocol()";
+                    }
+                }
+            } else {
+                if (!"protocol".equals(value[i])) {
+                    if (hasInvocation) {
+                        getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
+                    } else {
+                        getNameCode = String.format("url.getParameter(\"%s\", %s)", value[i], getNameCode);
+                    }
+                } else {
+                    getNameCode = String.format("url.getProtocol() == null ? (%s) : url.getProtocol()", getNameCode);
+                }
+            }
+        }
+
+        return String.format(CODE_EXT_NAME_ASSIGNMENT, getNameCode);
+    }
+
+</code></pre>
+<p>代码的分支虽然多，但是只做了一件事情，生成获取扩展名的代码。根据不同情况，生成的代码例子可以直观的看下面：</p>
+<pre><code class="language-java">String extName = (url.getProtocol() == null ? "dubbo" : url.getProtocol());
+</code></pre>
+<p>或</p>
+<pre><code class="language-java">String extName = url.getMethodParameter(methodName, "loadbalance", "random");
+</code></pre>
+<p>亦或是</p>
+<pre><code class="language-java">String extName = url.getParameter("client", url.getParameter("transporter", "netty"));
+</code></pre>
+<h2 id="toc_h2_10">四、总结</h2>
+<p>上面用了较长的篇幅分析了生成扩展代理类的代码，其实只要知道两方面阅读起来很简单。 Dubbo 的自适应扩展为了做什么：<strong>在运行时动态调用扩展方法</strong>。以及怎么做的：<strong>生成扩展代理类</strong>。代理类中根据 URL 获取扩展名，使用 SPI 加载扩展类，并调用同名方法，返回执行结果。</p>
+                    <div>
+                        <hr>
+
+标题：Dubbo 系列笔记之自适应扩展机制<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2019/12/20/1576840669968.html" target="_blank">https://aysaml.github.io/articles/2019/12/20/1576840669968.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h2">
+            <a href="#toc_h2_0">一、引言</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_1">二、理解自适应扩展</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_2">三、源码一探</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_3">1. @Adaptive 注解</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_4">2. getAdaptiveExtension( ) 方法</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_5">3. AdaptiveClassCodeGenerator 如何生成自适应扩展代码</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_6">3.1 AdaptiveClassCodeGenerator 构造方法</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_7">3.2 generate() 方法</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_8">3.3 generateMethod(Method method) 方法</a>
+        </li>
+        <li class="toc__h4">
+            <a href="#toc_h4_9">3.4 生成扩展名获取逻辑方法 generateExtNameAssignment(...)</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_10">四、总结</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1576840669968"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1576840669968",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1576840669968",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1576840669968', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 28ms, 2020/07/29 15:41:16 -->

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="theme-color" content="#3b3e43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="format-detection" content="telephone=no"/><title>为您的下一个 IoT 项目选择最佳硬件 - 码恋</title><meta name="description" content="硬件设备连网是 IoT 的核心。IoT 设备监视并测量 “事物” 或现实物品，包括工业设备、家用电器、建筑、汽车、仓库库存商品，以及人类（在使用可穿戴设备的情况下）。"/><meta property="og:description" content="硬件设备连网是 IoT 的核心。IoT 设备监视并测量 “事物” 或现实物品，包括工业设备、家用电器、建筑、汽车、仓库库存商品，以及人类（在使用可穿戴设备的情况下）。"/>    <meta name="keywords" content="IT知识共享"/><link rel="dns-prefetch" href="https://aysaml.github.io"/><link rel="dns-prefetch" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="https://aysaml.github.io"><link rel="icon" type="image/png" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="apple-touch-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><link rel="shortcut icon" type="image/x-icon" href="https://img.hacpai.com/file/2019/05/icon-3374e543.png"><meta name="copyright" content="B3log"/><meta http-equiv="Window-target" content="_top"/><meta property="og:locale" content="zh_CN"/><meta property="og:title" content="为您的下一个 IoT 项目选择最佳硬件 - 码恋"/><meta property="og:site_name" content="码恋"/><meta property="og:url"      content="https://aysaml.github.io/articles/2019/04/30/1556616771775.html?"/><meta property="og:image" content="https://img.hacpai.com/file/2019/05/icon-3374e543.png"/><link rel="search" type="application/opensearchdescription+xml" title="为您的下一个 IoT 项目选择最佳硬件 - 码恋" href="/opensearch.xml"><link href="https://aysaml.github.io/rss.xml" title="RSS" type="application/rss+xml" rel="alternate"/><link rel="manifest" href="https://aysaml.github.io/manifest.json">        <link rel="canonical" href="https://aysaml.github.io/articles/2019/04/30/1556616771775.html">        <link rel="stylesheet"
+              href="https://aysaml.github.io/skins/Casper/css/base.css?1595821338136"/>
+            <link rel="prev" title="连接物联网中的所有事物" href="https://aysaml.github.io/articles/2019/04/30/1556616509606.html">
+            <link rel="next" title="使用 IoT 平台简化 IoT 应用程序的开发" href="https://aysaml.github.io/articles/2019/04/30/1556619696349.html">
+    <script>(function(window,document,undefined){
+var hearts = [];
+window.requestAnimationFrame = (function(){
+return window.requestAnimationFrame ||
+window.webkitRequestAnimationFrame ||
+window.mozRequestAnimationFrame ||
+window.oRequestAnimationFrame ||
+window.msRequestAnimationFrame ||
+function (callback){
+setTimeout(callback,1000/60);
+}
+})();
+init();
+function init(){
+css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+attachEvent();
+gameloop();
+}
+function gameloop(){
+for(var i=0;i<hearts.length;i++){
+if(hearts[i].alpha <=0){
+document.body.removeChild(hearts[i].el);
+hearts.splice(i,1);
+continue;
+}
+hearts[i].y--;
+hearts[i].scale += 0.004;
+hearts[i].alpha -= 0.013;
+hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+}
+requestAnimationFrame(gameloop);
+}
+function attachEvent(){
+var old = typeof window.onclick==="function" && window.onclick;
+window.onclick = function(event){
+old && old();
+createHeart(event);
+}
+}
+function createHeart(event){
+var d = document.createElement("div");
+d.className = "heart";
+hearts.push({
+el : d,
+x : event.clientX - 5,
+y : event.clientY - 5,
+scale : 1,
+alpha : 1,
+color : randomColor()
+});
+document.body.appendChild(d);
+}
+function css(css){
+var style = document.createElement("style");
+style.type="text/css";
+try{
+style.appendChild(document.createTextNode(css));
+}catch(ex){
+style.styleSheet.cssText = css;
+}
+document.getElementsByTagName('head')[0].appendChild(style);
+}
+function randomColor(){
+return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+}
+})(window,document);</script></head>
+<body class="fn__flex-column">
+<div id="pjax" class="fn__flex-1">
+    
+    <header class="header header--article">
+        <div class="wrapper header__title">
+            <h1 class="header__h1 fn__flex-inline">
+                <img src="https://img.hacpai.com/file/2019/05/icon-3374e543.png" alt="码恋">
+                <a href="https://aysaml.github.io" rel="start" class="header__title">码恋</a>
+            </h1>
+            <h2 class="header__h2">ALL YOUR SMILES, ALL MY LIFE.</h2>
+        </div>
+        <nav class="wrapper header__nav fn__clear">
+            <a href="https://aysaml.github.io" rel="start">
+                    码恋
+            </a>
+
+                <a class="fn__flex-inline" href="https://aysaml.com/articles/2020/01/04/1578130888106.html" target="_blank" rel="section">
+                    <img src="https://img.hacpai.com/file/2019/12/图片-f1faac2f.png" alt="Dubbo 源码阅读笔记"> Dubbo 源码阅读笔记
+                </a>
+                <a class="fn__flex-inline" href="/my-github-repos" target="_self" rel="section">
+                    <img src="/images/github-icon.png" alt="我的开源"> 我的开源
+                </a>
+
+
+            <div class="fn__right">
+
+        <a href="https://github.com/aysaml"
+           title="https://github.com/aysaml"
+           class="user__site"
+           target="_blank" rel="noopener nofollow">
+            <svg viewBox="0 0 32 32" width="100%" height="100%">
+                <path d="M16 0.331c-8.836 0-16 7.163-16 16 0 7.069 4.585 13.067 10.942 15.182 0.8 0.148 1.094-0.347 1.094-0.77 0-0.381-0.015-1.642-0.022-2.979-4.452 0.968-5.391-1.888-5.391-1.888-0.728-1.849-1.776-2.341-1.776-2.341-1.452-0.993 0.11-0.973 0.11-0.973 1.606 0.113 2.452 1.649 2.452 1.649 1.427 2.446 3.743 1.739 4.656 1.33 0.143-1.034 0.558-1.74 1.016-2.14-3.554-0.404-7.29-1.777-7.29-7.907 0-1.747 0.625-3.174 1.649-4.295-0.166-0.403-0.714-2.030 0.155-4.234 0 0 1.344-0.43 4.401 1.64 1.276-0.355 2.645-0.532 4.005-0.539 1.359 0.006 2.729 0.184 4.008 0.539 3.054-2.070 4.395-1.64 4.395-1.64 0.871 2.204 0.323 3.831 0.157 4.234 1.026 1.12 1.647 2.548 1.647 4.295 0 6.145-3.743 7.498-7.306 7.895 0.574 0.497 1.085 1.47 1.085 2.963 0 2.141-0.019 3.864-0.019 4.391 0 0.426 0.288 0.925 1.099 0.768 6.354-2.118 10.933-8.113 10.933-15.18 0-8.837-7.164-16-16-16z"></path>
+            </svg>
+        </a>
+
+                <a rel="alternate" href="https://aysaml.github.io/rss.xml">
+                    RSS
+                </a>
+
+            </div>
+        </nav>
+    </header>
+    <div class="article__top">
+        <div class="fn__clear">
+            <div class="toc fn__none" onclick="$('.post__toc').slideToggle()">目录</div>
+            <div class="title fn__pointer" onclick="Util.goTop()">为您的下一个 IoT 项目选择最佳硬件</div>
+<div class="article__share"
+     data-title="为您的下一个 IoT 项目选择最佳硬件"
+     data-blogtitle="码恋"
+     data-url="https://aysaml.github.io/articles/2019/04/30/1556616771775.html"
+     data-avatar="https://b3logfile.com/avatar/1556463918213_1595489404988.jpeg?imageView2/1/w/128/h/128/interlace/0/q/100">
+    <span class="item" data-type="qqz">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M22.824 13.989l-8.348 6.287s3.351 0.522 8.404 0.461l-0.23-1.040 7.2-6.549c0.132-0.12 0.183-0.312 0.129-0.487s-0.203-0.299-0.377-0.314l-9.492-0.856-3.708-9.213c-0.068-0.169-0.226-0.279-0.401-0.279s-0.333 0.11-0.401 0.279l-3.708 9.213-9.492 0.856c-0.174 0.015-0.323 0.139-0.377 0.314s-0.004 0.366 0.129 0.487l7.2 6.549-2.158 9.742c-0.040 0.178 0.026 0.365 0.168 0.474 0.142 0.107 0.331 0.115 0.481 0.021l8.158-5.165 8.158 5.165c0.070 0.045 0.147 0.066 0.225 0.066 0.090 0 0.18-0.029 0.256-0.086 0.142-0.109 0.208-0.295 0.168-0.474l-1.707-7.704c0.732-0.386 1.538-1.040 1.538-1.040s-3.195 1.638-14.664 0.838l8.312-6.325s-0.327-0.534-10.744-0.914c-0.697-0.026 8.493-1.83 15.281-0.305z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="wechat">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M9.062 9.203c0-0.859-0.562-1.422-1.422-1.422-0.844 0-1.703 0.562-1.703 1.422 0 0.844 0.859 1.406 1.703 1.406 0.859 0 1.422-0.562 1.422-1.406zM20.672 17.125c0-0.562-0.562-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.859 0 1.422-0.562 1.422-1.141zM16.984 9.203c0-0.859-0.562-1.422-1.406-1.422-0.859 0-1.703 0.562-1.703 1.422 0 0.844 0.844 1.406 1.703 1.406 0.844 0 1.406-0.562 1.406-1.406zM26.906 17.125c0-0.562-0.578-1.125-1.422-1.125-0.562 0-1.125 0.562-1.125 1.125 0 0.578 0.562 1.141 1.125 1.141 0.844 0 1.422-0.562 1.422-1.141zM22.75 10.922c-0.359-0.047-0.719-0.063-1.094-0.063-5.375 0-9.625 4.016-9.625 8.953 0 0.828 0.125 1.625 0.359 2.375-0.359 0.031-0.703 0.047-1.063 0.047-1.422 0-2.547-0.281-3.969-0.562l-3.953 1.984 1.125-3.406c-2.828-1.984-4.531-4.547-4.531-7.656 0-5.391 5.094-9.625 11.328-9.625 5.563 0 10.453 3.391 11.422 7.953zM32 19.687c0 2.547-1.688 4.813-3.969 6.516l0.859 2.828-3.109-1.703c-1.141 0.281-2.281 0.578-3.406 0.578-5.391 0-9.625-3.688-9.625-8.219s4.234-8.219 9.625-8.219c5.094 0 9.625 3.688 9.625 8.219z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="weibo">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M13.444 27.064c-5.3 0.525-9.875-1.875-10.219-5.35-0.344-3.481 3.675-6.719 8.969-7.244 5.3-0.525 9.875 1.875 10.212 5.35 0.35 3.481-3.669 6.725-8.963 7.244zM24.038 15.521c-0.45-0.137-0.762-0.225-0.525-0.819 0.512-1.287 0.563-2.394 0.006-3.188-1.038-1.481-3.881-1.406-7.137-0.037 0 0-1.025 0.444-0.762-0.363 0.5-1.613 0.425-2.956-0.356-3.737-1.769-1.769-6.469 0.069-10.5 4.1-3.013 3.006-4.763 6.212-4.763 8.981 0 5.287 6.787 8.506 13.425 8.506 8.7 0 14.494-5.056 14.494-9.069 0-2.431-2.044-3.806-3.881-4.375z"></path>
+            <path d="M29.819 5.833c-2.1-2.331-5.2-3.219-8.063-2.612v0c-0.663 0.144-1.081 0.794-0.938 1.45 0.144 0.662 0.788 1.081 1.45 0.938 2.038-0.431 4.238 0.2 5.731 1.856s1.9 3.913 1.256 5.888v0c-0.206 0.644 0.144 1.331 0.788 1.544 0.644 0.206 1.331-0.144 1.544-0.787v-0.006c0.9-2.762 0.331-5.938-1.769-8.269z"></path>
+            <path d="M26.588 8.752c-1.025-1.138-2.538-1.569-3.925-1.269-0.569 0.119-0.931 0.688-0.813 1.256 0.125 0.569 0.688 0.931 1.25 0.806v0c0.681-0.144 1.419 0.069 1.919 0.619 0.5 0.556 0.637 1.313 0.419 1.975v0c-0.175 0.55 0.125 1.15 0.681 1.331 0.556 0.175 1.15-0.125 1.331-0.681 0.438-1.356 0.163-2.906-0.863-4.037z"></path>
+            <path d="M13.738 20.771c-0.188 0.319-0.594 0.469-0.912 0.337-0.319-0.125-0.412-0.488-0.231-0.794 0.188-0.306 0.581-0.456 0.894-0.337 0.313 0.113 0.425 0.469 0.25 0.794zM12.044 22.933c-0.512 0.819-1.613 1.175-2.438 0.8-0.813-0.369-1.056-1.319-0.544-2.119 0.506-0.794 1.569-1.15 2.388-0.806 0.831 0.356 1.1 1.3 0.594 2.125zM13.969 17.146c-2.519-0.656-5.369 0.6-6.463 2.819-1.119 2.262-0.037 4.781 2.506 5.606 2.638 0.85 5.75-0.456 6.831-2.894 1.069-2.394-0.262-4.85-2.875-5.531z"></path>
+        </svg>
+    </span>
+    <span class="item" data-type="twitter">
+        <svg viewBox="0 0 32 32" width="100%" height="100%">
+            <path d="M32.003 6.075c-1.175 0.525-2.444 0.875-3.769 1.031 1.356-0.813 2.394-2.1 2.887-3.631-1.269 0.75-2.675 1.3-4.169 1.594-1.2-1.275-2.906-2.069-4.794-2.069-3.625 0-6.563 2.938-6.563 6.563 0 0.512 0.056 1.012 0.169 1.494-5.456-0.275-10.294-2.888-13.531-6.862-0.563 0.969-0.887 2.1-0.887 3.3 0 2.275 1.156 4.287 2.919 5.463-1.075-0.031-2.087-0.331-2.975-0.819 0 0.025 0 0.056 0 0.081 0 3.181 2.263 5.838 5.269 6.437-0.55 0.15-1.131 0.231-1.731 0.231-0.425 0-0.831-0.044-1.237-0.119 0.838 2.606 3.263 4.506 6.131 4.563-2.25 1.762-5.075 2.813-8.156 2.813-0.531 0-1.050-0.031-1.569-0.094 2.913 1.869 6.362 2.95 10.069 2.95 12.075 0 18.681-10.006 18.681-18.681 0-0.287-0.006-0.569-0.019-0.85 1.281-0.919 2.394-2.075 3.275-3.394z"></path>
+        </svg>
+    </span>
+    <span class="item__qr"></span>
+</div>        </div>
+        <progress class="article__progress"></progress>
+    </div>
+    <div class="article">
+        <div class="ft__center">
+            <div class="item__meta">
+                <time>
+                    2019-04-30
+                </time>
+                /
+                    <a class="tag" rel="tag"
+                       href="https://aysaml.github.io/tags/IoT">IoT</a> &nbsp;
+            </div>
+            <h2 class="item__title">
+                为您的下一个 IoT 项目选择最佳硬件
+            </h2>
+        </div>
+        <div class="item__cover" style="background-image: url(https://img.hacpai.com/bing/20180612.jpg?imageView2/1/w/960/h/540/interlace/1/q/100)"></div>
+        <div class="wrapper">
+            <section class="item__content item__content--article vditor-reset">
+                <p><img src="https://img.hacpai.com/bing/20180612.jpg?imageView2/1/w/960/h/540/interlace/1/q/100" alt=""></p>
+<p>硬件设备连网是 IoT 的核心。IoT 设备监视并测量 “事物” 或现实物品，包括工业设备、家用电器、建筑、汽车、仓库库存商品，以及人类（在使用可穿戴设备的情况下）。</p>
+<p>开发新 IoT 解决方案时，需要通过一个迭代式的反馈和评估过程来对软硬件组件进行设计、塑造原型并完善。诸如 Arduino 和 Raspberry Pi 之类的业余爱好者硬件平台，有助于在快速设计原型并完善的过程中领先一步，原因在于这些平台是现成的，而且需要的投资也比每次在设计迭代中设计和制造定制的_印刷电路板_&nbsp;(PCB) 要少一些。作为此过程的一部分，您需要考虑自己的 IoT 应用程序的硬件需求，评估和完善为了满足这些需求而构建的 IoT 设备原型，并适当地采用现成的组件或定制组件来调整它们。</p>
+<p>在 IoT 的背景下，<em>设备</em>&nbsp;这个词被过度使用，它描述了针对特定用途而设计或调整的硬件。它被用于表示各个硬件组件，包括传感器和执行器，也用于表示现成的电路板，比如 Raspberry Pi，还被用于表示由若干子设备构建的定制原型和生产单元。在本文中，我将分析一些广泛使用的现成硬件选项，讨论在开发下一个 IoT 项目和为其设计原型时，为什么可能会选择这一种设备而不是另一种设备。</p>
+<h2 id="toc_h2_0">IoT 设备特征</h2>
+<p>随着 IoT 环境的日趋成熟，新设备和设备平台也在不断发布。您需要理解大多数 IoT 设备中常见的关键特征，才能在新设备可用时对它们进行比较和评估。</p>
+<p>我们可以根据这些高级性能来描述 IoT 设备的特征：</p>
+<ul>
+<li>数据获取和控制</li>
+<li>数据处理和存储</li>
+<li>连接性</li>
+<li>电源管理</li>
+</ul>
+<h3 id="toc_h3_1">数据获取和控制</h3>
+<p><em>数据获取</em>&nbsp;(<a href="https://en.wikipedia.org/wiki/Data_acquisition" target="_blank">DAQ</a>) 是按固定时间间隔（数据取样速度）测量实际状况，并将测量结果转换为数字读数的过程。DAQ 还涉及到信号调节和模数转换器，前者用于操作和缩放原始传感器读数，后者用于将模拟传感器读数转换为数字值，以便对它们进行处理和分析。</p>
+<p><em>传感器</em>&nbsp;是测量物理变量并将它们转换为电信号（电压）的输入组件。您可以从数千种类型的现有传感器中进行选择，用它们来测量一系列变量，包括温度、湿度、压力、烟雾、瓦斯、光纤、声音、震动、气流、水流、速度、加速度、距离、GPS 位置、海拔或力，等等。但传感器并不是只能测量环境条件；本体感受传感器还能监视设备的内部状态，诸如按钮、滑块或触摸屏之类的传感器还可用于直接与设备交互，提供一个人机接口。对于每种类型的传感器，比如温度传感器，众多制造商提供了数十种备选组件，每种组件的准确性和精确度规格都稍有不同，而且每种组件都是为特定应用和操作条件而设计的，比如用在水下或用于抵抗极热和极冷条件。</p>
+<p>传感器组件的一个重要特征是分辨率。传感器的分辨率表示传感器能可靠地读取的最小变化量，它与用于表示原始传感器读数的数值大小相关。例如，一个具有 10 位分辨率的模拟温度传感器，使用 0 到 1023 之间的数值表示温度读数。位是二进制数字，所以 10 位总共提供了 2 的 10 次方或 1024 个可能值。但实际上，传感器会受电气噪声影响，导致实际的分辨率降低。</p>
+<p>传感器将温度等物理变量转换为电信号，而输出设备正好相反：它们将电信号转换为物理变量。输出设备包括 LED、扬声器和屏幕，以及诸如发动机和螺线管之类能移动或控制物理世界中的事物的_执行器 (actuator)_。执行器通常部署在工业 IoT 应用程序内；例如，制造中广泛采用气动线性执行器在组装过程中移动和抓住产品。</p>
+<h3 id="toc_h3_2">数据处理和存储</h3>
+<p>IoT 设备需要具备处理和存储数据的能力，才能对它们捕获的数据执行基本的处理、转换和分析。IoT 设备可直接处理数据，或者可以将数据传输到其他设备、网关设备、云设备或应用程序来进行聚合和分析。</p>
+<p>边缘分析涉及到在网络边缘而不是在中心位置执行数据分析。可在设备自身上或在 IoT 设备直接连接的附近网关设备（比如路由器）上近实时地分析数据，而无需让设备将大量数据传输到上游的云服务器或数据中心来进行进一步分析。在边缘处理数据使得在收集数据时就能够对其进行聚合和过滤，仅选出最重要的数据发送给上游。最终，边缘分析既能减少上游的处理和存储需求，又能减轻网络上的负载。</p>
+<p>IoT 应用程序的处理能力和存储取决于设备自身完成的处理工作量，而不是使用数据的服务或应用程序所完成的处理工作量。可用内存量和处理器规格（包括时钟速率和内核数量）决定了设备处理数据的速率。在将数据传输到上游之前，可以使用非易失性闪存存储器来保存数据，该存储器的容量决定了可在设备上存储的数据量。与仅执行诸如验证、标准化、缩放或转换读数（比如将原始温度读数转换为摄氏度）之类的基本数据处理的设备相比，执行边缘分析的设备需要的处理能力要高得多。</p>
+<h3 id="toc_h3_3">连接性</h3>
+<p>网络连接是所有 IoT 设备的界定特征之一。设备与本地的其他设备通信，并向云中的服务和应用程序发布数据。一些设备使用 802.11 (wifi)、蓝牙、RFID、蜂窝网络，或者诸如 LoRa、SigFox 或 NB-IoT 之类的低功耗广域物联网 (LPWAN) 技术来进行无线通信。有线通信适用于安装在智慧建筑、家庭自动化和工业控制系统中的固定设备，可将这些设备连接到以太网或通过有源以太网对其进行改良。串行通信也是设备之间的一种有线连接形式，它使用_通用异步收发传输器_&nbsp;(UART) 或_控制器局域网_(CAN) 协议（起源于汽车行业）等标准协议。</p>
+<h3 id="toc_h3_4">电源管理</h3>
+<p>对于依靠电池或其他无线电源（比如太阳能）供电的便携和可穿戴 IoT 设备，电源管理特别重要。根据提供数据获取和控制、存储、处理和连网功能的相连传感器、执行器或_集成电路_&nbsp;(IC) 的使用模式和电源需求，设备可能需要定期进入休眠模式或低功耗模式，以节省电量或延长电池寿命。例如，类似 Raspberry Pi 3 这样的单板计算机，在典型使用情况下大约需要 700 - 1000mA 电流才能运转。如果不断通过 WiFi 网络传输数据，或者使用设备执行大量数据处理而使设备高负荷运转时，电源消耗将处于该范围的较高水平，当设备空闲时电源消耗才会下降。如果连接了相机模块，在使用相机时，需要的电流会增加大约 250mA。传感器通常需要电源才能运行，Raspberry Pi 上的 GPIO 引脚提供了 3.3V 或 5V 电压，所有引脚上的总电流最高为 50mA，所以随着引脚上连接的组件数量的增加，设备的总体电源消耗也会增加。</p>
+<h2 id="toc_h2_5">用于为 IoT 项目设计原型的现有硬件类型</h2>
+<p>开发 IoT 应用程序比以往更容易，这得益于现在有越来越多低成本、商业性的硬件开发板、平台和原型设计工具包。模块化的硬件设计使得开发 IoT 应用程序更加灵活。您可以替换备用组件，试用规格略有不同的传感器，或者可以独立地升级设备的网络、数据处理或存储模块，以满足不断变化的需求。</p>
+<p>包括微控制器和单板计算机在内的许多现有的商业性硬件设备，都是围绕_单芯片系统_&nbsp;(SoC) IC 而设计。SoC 将包括数据处理、存储和网络在内的大量功能集成到一个芯片上。这种配置意味着，您会牺牲一些灵活性来换取便捷性，但幸运的是，有大量具有一系列配置的商业性设备可供选择。例如，表 1列出选择用于 IoT 项目原型设计的微控制器的技术规格，表 2对 3 种常见的_单板计算机_&nbsp;(SBC) 进行了比较。</p>
+<h3 id="toc_h3_6">微控制器开发板</h3>
+<p><em>微控制器</em>&nbsp;是一种提供数据处理和存储功能的 SoC。微控制器包含一个（或多个）处理器内核、内存 (RAM，随机存取存储器)，以及用于存储在微控制器上运行的自定义程序的_可擦除可编程只读寄存器_&nbsp;(EPROM)。<em>微控制器开发板</em>&nbsp;属于 PCB（印制电路板），但增加了额外的电路来支持微控制器，使对芯片进行原型设计和编程变得更方便。</p>
+<p>传感器和执行器通过数字或模拟_通用输入/输出_&nbsp;(GPIO) 引脚或硬件总线来连接到微控制器。<a href="https://en.wikipedia.org/wiki/I%C2%B2C" target="_blank">I2C</a>&nbsp;和&nbsp;<a href="https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus" target="_blank">SPI</a>&nbsp;等标准通信协议用于与总线上连接的组件进行设备内通信。通过采用各种标准，可以更容易地添加或替换与总线连接的组件。</p>
+<p>Arduino (<a href="http://arduino.cc/en/Main/" target="_blank">http://arduino.cc/en/Main/</a>) 是一个开源设备平台，其制造兼容开发板和工具的社区十分活跃。不同官方 Arduino 型号 (<a href="https://www.arduino.cc/en/Products/Compare" target="_blank">https://www.arduino.cc/en/Products/Compare</a>))的设备功能不同，数十种第三方兼容电路板的设备功能也有差异。表 1 中的所有设备都是兼容 Arduino 的微控制器，包括无处不在的 Arduino Uno，Particle 的 Electron（其中集成了一个蜂窝式调试解调器），以及 Espressif Systems 集成了 WiFi 的低成本、低功耗微控制器 (<a href="https://espressif.com/en/products/hardware/esp8266ex/overview" target="_blank">https://espressif.com/en/products/hardware/esp8266ex/overview</a>) ESP8266-01。</p>
+<h5 id="toc_h5_7">图 1. Arduino 微控制器开发板</h5>
+<p><img src="https://www.ibm.com/developerworks/cn/iot/library/iot-lp101-best-hardware-devices-iot-project/picture1.png" alt=""></p>
+<p>像 Arduino 一样，ESP8266 拥有一个活跃的采用者社区。基于 ESP8266 的著名的开发板包括 NodeMCU (<a href="http://nodemcu.com/index_en.html" target="_blank">http://nodemcu.com/index_en.html</a>)、WeMos D1 (<a href="https://www.wemos.cc/" target="_blank">https://www.wemos.cc/</a>) 和 AdaFruit 的 Feather Huzzah (<a href="https://learn.adafruit.com/adafruit-feather-huzzah-esp8266/overview" target="_blank">https://learn.adafruit.com/adafruit-feather-huzzah-esp8266/overview</a>)。开源和制造者社区已为基于 ESP8266 的开发板开发了许多备选固件，使 IoT 开发人员能使用 Lua、Python 和 JavaScript 为这些开发板编程，并支持无线 (OTA) 更新。</p>
+<h5 id="toc_h5_8">表 1. Uno、Electron 和 ESP82566-01 微控制器的技术规格</h5>
+<table>
+<thead>
+<tr><th>特征</th><th>功能</th><th>Arduino Uno</th><th>Particle Electron</th><th>Espressif Systems ESP8266-01</th></tr>
+</thead>
+<tbody>
+<tr><td><strong><em>数据获取和控制</em></strong></td></tr>
+<tr><td> </td><td><strong>GPIO 引脚</strong></td><td>6 个模拟输入引脚</td></tr>
+<tr><td>14 个数字引脚 - 6 PWM</td><td>12 个模拟输入引脚</td></tr>
+</tbody>
+</table>
+<p>2 个模拟输出引脚&nbsp;<br>
+30 个数字引脚 - 15 PWM<br>
+| 2 个数字引脚<br>
+1 个模拟引脚 |<br>
+|  | <strong>逻辑电平电压</strong> | 5V | 3.3V | 3.3V |<br>
+| <strong><em>数据处理和存储</em></strong> |<br>
+|  | <strong>处理器</strong> | ATMega328PU | 32 位 STM32F205 | 32 位 Tensilica L106 |<br>
+|  | <strong>处理器速度</strong> | 16 KHz | 120 MHz | 80 MHz |<br>
+|  | <strong>内存</strong> | 32 kB 闪存，<br>
+1 kB EEPROM | 1 Mb 闪存，<br>
+128 kB RAM | 1 Mb |<br>
+| <strong><em>连接性</em></strong> |<br>
+|  | <strong>网络接口</strong> | 默认情况下没有连接。可通过孔壁添加。 | 集成蜂窝调制解调器 (2G / 3G) | 集成 WiFi |<br>
+| <strong><em>电源</em></strong> |<br>
+|  | <strong>推荐电源</strong> | 9-12V DC 0.5 - 2A 孔壁或 5V 500mA USB 或通过 VIN 引脚提供 9 - 12 V 电压 | 5V micro USB 或通过 VIP 引脚提供 3.9V-12VDC 电压 | 通过 VCC 引脚提供稳定的 3.3V 300mA 电源 |<br>
+| <strong><em>其他</em></strong> |<br>
+|  | <strong>尺寸</strong> | 2.7 英寸 X 2.1 英寸 | 2.0 英寸 x 0.8 英寸 | 1.4 英寸 x 1 英寸 |<br>
+|  | <strong>典型成本</strong> | 25 美元 | 39 - 59 美元 | 10 美元 |</p>
+<p>要开发在兼容 Arduino 的微控制器上运行的软件，标准方法是使用 C 或 C++ 和 Arduino IDE，但是也有一些社区开发的语言绑定和可视编程工具。具有相同引脚布局且兼容 Arduino 的开发板能使用可选的第三方孔壁进行扩展，例如为了向 Arduino Uno 添加以太网端口或蓝牙。Arduino 是采用最广泛的业余爱好者微控制器开发环境，但是其他的像 Tessel (<a href="https://tessel.io/" target="_blank">https://tessel.io/</a>) 和 Particle.io (<a href="http://particle.io/" target="_blank">http://particle.io</a>) 这样的环境原生支持，而 MicroPython 的 PyBoard (<a href="http://micropython.org/" target="_blank">http://micropython.org</a>) 和 WeIO (<a href="http://we-io.net/hardware/" target="_blank">http://we-io.net/hardware/</a>) 等开发板支持 Python。</p>
+<p>选择兼容 Arduino 的微控制器，更容易将使用跨平台 Arduino 库和 Arduino IDE 开发的程序移植到其他兼容 Arduino 的设备上运行。您仍然需要应对一些差异，例如，Arduino Uno 使用数字 I/O 引脚上的 5V 逻辑电压（其中 0V 等于 LOW 或 OFF，5V 等于 HIGH 或 ON），但 ESP8266 和 Particle 开发板使用 3.3V 逻辑电压（3.3V 表示 HIGH）。这可能影响您对传感器或执行器组件的选择，因为一些组件仅适用于某一种开发板。将针对 5V 逻辑电压设计的传感器替换为 3.3V 逻辑电压的传感器可能会导致意外结果，也可能损坏经受不住更高电压的引脚，所以您需要添加一个逻辑电平转换器才能使移植奏效。在实现低水平硬件功能时，比如启用深度睡眠模式或使用特定协议从连接的传感器读取数据，可能需要依靠特定于设备或组件的库，这些库会导致代码更不容易移植。</p>
+<h3 id="toc_h3_9">单板计算机</h3>
+<p><em>单板计算机</em>&nbsp;(SBC) 比微控制器更进一步，因为它们允许连接键盘、鼠标和屏幕等外围设备，并提供了更多内存和更强的处理能力（例如，表 2 提供了 1.2 GHz 32 位 ARM 微处理器，而 表 1 仅提供了 8 位 16KHz 微控制器）。表 2列出了 3 种 SBC 的技术规格：Raspberry Pi 3 Model B (<a href="https://www.raspberrypi.org/" target="_blank">https://www.raspberrypi.org/</a>)、BeagleBone Black (<a href="http://beagleboard.org/black" target="_blank">http://beagleboard.org/black</a>) 和 DragonBoard 410c (<a href="https://developer.qualcomm.com/hardware/dragonboard-410c" target="_blank">https://developer.qualcomm.com/hardware/dragonboard-410c</a>)。</p>
+<h5 id="toc_h5_10">图 2. Raspberry Pi 单板计算机</h5>
+<p><img src="https://www.ibm.com/developerworks/cn/iot/library/iot-lp101-best-hardware-devices-iot-project/picture2.png" alt=""></p>
+<p>微控制器与单板计算机之间的区别没有固定标准。一些设备介于二者之间，比如 Onion Omega 2 (<a href="https://docs.onion.io/omega2-docs/omega2.html#omega2" target="_blank">https://docs.onion.io/omega2-docs/omega2.html#omega2</a>) 的电路板存储器和处理能力与低端 SBC 相当。还有一些混合设备，比如 UDOO Quad (<a href="http://www.udoo.org/docs/Introduction/Introduction.html" target="_blank">http://www.udoo.org/docs/Introduction/Introduction.html</a>)，它将一个基于 ARM 的 Linux 系统与一个兼容 Arduino 的微控制器相集成。</p>
+<h5 id="toc_h5_11">表 2. Raspberry Pi 3、BeagleBone Black 和 DragonBoard 3 种 SBC 的技术规格</h5>
+<table>
+<thead>
+<tr><th>特征</th><th>功能</th><th>Raspberry Pi 3 Model B</th><th>BeagleBone Black</th><th>Qualcomm DragonBoard 410c</th></tr>
+</thead>
+<tbody>
+<tr><td><strong><em>数据获取和控制</em></strong></td></tr>
+<tr><td> </td><td><strong>GPIO 引脚</strong></td><td>40 个 I/O 引脚，包括 29 个数字引脚</td><td>65 个数字引脚 - 8 PWM</td></tr>
+<tr><td>7 个模拟输入引脚</td><td>12 个数字引脚</td></tr>
+<tr><td> </td><td><strong>逻辑电平电压</strong></td><td>3.3V</td><td>5V</td><td>1.8V</td></tr>
+<tr><td><strong><em>数据处理和存储</em></strong></td></tr>
+<tr><td> </td><td><strong>处理器</strong></td><td>ARM Cortex A53</td><td>AM335X ARM Cortex A8</td><td>ARM Cortex A53</td></tr>
+<tr><td> </td><td><strong>处理器速度</strong></td><td>1.2GHz</td><td>1 GHz</td><td>1.2 GHz</td></tr>
+<tr><td> </td><td><strong>内存</strong></td><td>1 Gb</td><td>4 Gb</td><td>1Gb、8Gb 闪存</td></tr>
+<tr><td><strong><em>连接性</em></strong></td></tr>
+<tr><td> </td><td><strong>网络接口</strong></td><td>Wifi、以太网、蓝牙</td><td>以太网，</td></tr>
+<tr><td>USB 端口支持外部 WiFi/蓝牙适配器</td><td>Wifi、蓝牙、GPS</td></tr>
+<tr><td><strong><em>电源</em></strong></td></tr>
+<tr><td> </td><td><strong>推荐电源</strong></td><td>5V 2.5A micro USB 端口</td><td>5V 1.2A - 2A 孔壁</td><td>6.5 - 18V 2A 孔壁</td></tr>
+<tr><td><strong><em>其他</em></strong></td></tr>
+<tr><td> </td><td><strong>尺寸</strong></td><td>3.4 英寸 x 2.2 英寸</td><td>3.4 英寸 x 2.1 英寸</td><td>3.3 英寸 x 2.1 英寸</td></tr>
+<tr><td> </td><td><strong>典型成本</strong></td><td>35 美元</td><td>55 美元</td><td>75 美元</td></tr>
+</tbody>
+</table>
+<p>与微控制器一样，SBC 设备功能也可通过增加可堆叠的开发板来扩展，这些开发板在 Raspberry Pi 上被称为&nbsp;<em>hat</em>，在 BeagleBone Black 上被称为&nbsp;<em>cape</em>，还可以通过增加电动机控制器或模数转换器等外部模块来扩展开发板，减轻设备内置功能的限制。</p>
+<p>许多 SBC 设备更像一台微型 PC，而且运行着嵌入式操作系统（通常是简化的 Linux 发行版）。因此，与微控制器开发板相比，对于这些设备上连接的传感器和执行器，要开发用于它们的嵌入式应用程序，有更多开发工具和语言可供选择。但是，SBC 的设置更复杂、更大、能耗更高，而且更容易出现一些问题，比如存储应用程序的 SD 卡或闪存损坏。</p>
+<h3 id="toc_h3_12">在微控制器开发板与单板计算机之间进行选择</h3>
+<p>要实现完整的 IoT 解决方案，尽管现有的微控制器开发板和单板计算机仅能发挥部分作用，但它们非常适合初始开发。</p>
+<p>一种入门方式是根据应用程序的需求来考虑关键的 IoT 设备特征，然后制定以下设计决策：</p>
+<ul>
+<li>确定您需要的外围传感器和输出组件的类型和数量，如有必要，还需要确定这些组件的设计电路</li>
+<li>选择一个微控制器或单板设备来协同控制外围组件并从中读取数据</li>
+<li>确定您用于设备内通信的数据通信协议（例如，对微控制器与任何附加传感器之间的通信使用 I2C）</li>
+<li>选择需要用来与云服务和应用程序进行通信的网络硬件和协议</li>
+</ul>
+<p>例如，为了在预算内设置一个家庭自动化系统，我选择了 Raspberry Pi Zero W，因为它是一个成本很低（约 10 美元）的小巧的 SBC 设备，而且拥有充足的处理能力和内存（1GHz ARM6 处理器和 512 MB RAM）来在设备上执行对数据处理和分析。它支持采用最高 64GB 的 microSD 闪存扩展卡来存储程序和数据。而且像 Raspberry Pi 3 一样，它配备了一个完整的 40 引脚 GPIO 端板，允许连接多个传感器，同时还支持 SPI 和 I2C 协议。它拥有板载 WiFi，可用于连接家庭网络，而且可以通过 micro-USB 从移动电源或墙插式电源供电。</p>
+<p>随着您进一步为 IoT 设备、嵌入式软件，以及上游服务和应用程序设计原型，可以针对您的功能和非功能需求（包括性能、可靠性和安全性）来定期评估这些原型，并在必要时重新考虑这些选择。</p>
+<h2 id="toc_h2_13">部署 IoT 项目的 IoT 硬件需求</h2>
+<p>IoT 设备是高度专业化的，而且是为在非常特定的上下文和环境中运行而设计的，所以 IoT 的硬件需求千差万别。您最初可能使用通用的现成硬件来设计原型，但随着您继续执行这个迭代式设计和需求验证流程，最终可能针对您的需求而定制设计和开发 PCB 和组件，这些 PCB 和组件将会部署到生产 IoT 解决方案中。作为此过程的一部分，您需要考虑以下几种硬件需求：</p>
+<ul>
+<li>安全需求</li>
+<li>易开发性</li>
+<li>数据获取、处理和存储需求</li>
+<li>连接需求</li>
+<li>电源需求</li>
+<li>物理设备设计</li>
+<li>成本需求</li>
+</ul>
+<h3 id="toc_h3_14">安全需求</h3>
+<p>安全性是 IoT 中的一个关键元素，必须在设计和开发的所有阶段考虑安全性。即使是在原型设计期间，也必须保证设备捕获的数据的完整性和安全性。安全需求关系到 IoT 设备本身的安全、网络的加固，以及相关云服务及移动和 Web 应用程序的安全。</p>
+<p>相关安全需求包括：</p>
+<ul>
+<li>确保每个设备拥有足够的处理能力和内存，以便能以发送和接收数据和消息的速率对它们进行加密和解密</li>
+<li>确保嵌入式软件开发库支持在向上游服务和应用程序执行验证时使用的授权和访问控制机制</li>
+<li>选择采用现有的设备来实现设备管理协议，以便在将新设备添加到网络时，安全地注册这些设备以免发生欺诈；此外，选择包含固件功能的现有设备，可用无线方式安全地更新安全补丁</li>
+</ul>
+<h3 id="toc_h3_15">易开发性</h3>
+<p>在原型设计期间，易开发性是另一个要优先考虑的需求，满足该需求才能快速轻松地让您的 IoT 设备正常运行，捕获数据，并与其他设备和云进行通信。</p>
+<p>考虑 API 文档、开发工具，以及硬件制造商或开发社区所提供的支持的可访问性、可用性和质量。选择的设备要能快速轻松地编程和刷新，而且在部署时只需较少的接触，不需要配置或只需针对每个设备进行极少的配置，以便在开发 IoT 应用程序时少走弯路并节省时间。</p>
+<h3 id="toc_h3_16">数据获取、处理和存储需求</h3>
+<p>连接的传感器数量、捕获的数据的分辨率，以及数据采样速率，这些都决定了要处理的数据量，还会影响数据处理和存储需求。</p>
+<p>需要保留在设备上的数据量，取决于连接设备向上游传输数据的频率。安装在智慧建筑中的始终通过电缆连接的设备，会直接向一个高度可用的服务器传输少量的原始数据，与需要处理大量突然传入的数据相比，这种设备需要的处理能力和存储空间相对较少。为了省电而每隔几小时进行连接的设备需要更大的存储空间，在连电期间将数据记录到本地。</p>
+<h3 id="toc_h3_17">连接需求</h3>
+<p>无线网络的连接需求包括操作范围，或者信号的传输距离，以及预计要传输的数据量和传输速率。考虑设备的容错能力，以及在断开连接后重连并重新尝试发送数据的能力。</p>
+<p>您的硬件可能拥有集成式网络连接，比如蓝牙或 WiFi，或者可能需要通过扩展板或模块来添加此能力。可升级的外部模块能提供更高的灵活性，因为您可以选择试用不同模块来评估它们的范围和功耗。</p>
+<h3 id="toc_h3_18">电源需求</h3>
+<p>其他许多需求也会对设备的电源需求产生影响，这些需求包括需要的传感器数量和网络传输速率。考虑您的设备是否将连接电源，或者是否需要电池或超级电容之类的移动电源。如果需要电池，您需要知道电池的大小、重量和容量需求，以及电池是否可以重复充电、更换，或者在电池耗尽后是否应将设备丢弃。如果设备可再充电，应多久充一次，通过什么方式充电？</p>
+<h3 id="toc_h3_19">物理设备设计需求</h3>
+<p>物理设备设计需求包括设备的外观和大小。</p>
+<p>还需要考虑设备将安装到哪些环境条件下，例如它是否需要防水或有坚固的外壳？例如，作为车队监控应用的一部分，安装在卡车底部的设备需要得到妥善保护，以确保它们在恶劣条件下能够继续运行；它需要防水、耐脏和抗震。</p>
+<h3 id="toc_h3_20">成本需求</h3>
+<p>硬件的成本包括硬件和关联组件（比如任何传感器）的初始费用，以及它们的持续操作成本，比如电源成本和更换磨损部件或缺陷组件的维护成本。您可能还需要为一些组件或设备驱动程序支付持续授权费用。在开发的早期阶段，购买少量现有的商业性开发板或 SBC 可能比生产小批量定制开发板更划算；但是，随着设备数量开始扩展到几十或几百个，专用硬件设备可能具有更大的价值优势。</p>
+<h2 id="toc_h2_21">结束语</h2>
+<p>在为 IoT 项目选择硬件时，没有万全之策。采用基于标准的商业性硬件，比如微控制器或单板计算机，可以在开发的早期阶段节省时间和开支，而不会缺乏灵活性。您在原型设计阶段学到的知识，能帮助您在开始部署 IoT 解决方案时制定关键的硬件设计决策。</p>
+<p>（作者 Anna Gerber）</p>
+                    <div>
+                        <hr>
+
+标题：为您的下一个 IoT 项目选择最佳硬件<br>
+作者：<a href="https://aysaml.github.io" target="_blank">wangning1018</a><br>
+地址：<a href="https://aysaml.github.io/articles/2019/04/30/1556616771775.html" target="_blank">https://aysaml.github.io/articles/2019/04/30/1556616771775.html</a><br>
+
+<br>
+                    </div>
+            </section>
+        </div>
+    </div>
+        <div class="post__toc">
+<ul class="article__toc">
+        <li class="toc__h2">
+            <a href="#toc_h2_0">IoT 设备特征</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_1">数据获取和控制</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_2">数据处理和存储</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_3">连接性</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_4">电源管理</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_5">用于为 IoT 项目设计原型的现有硬件类型</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_6">微控制器开发板</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_7">图 1. Arduino 微控制器开发板</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_8">表 1. Uno、Electron 和 ESP82566-01 微控制器的技术规格</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_9">单板计算机</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_10">图 2. Raspberry Pi 单板计算机</a>
+        </li>
+        <li class="toc__h5">
+            <a href="#toc_h5_11">表 2. Raspberry Pi 3、BeagleBone Black 和 DragonBoard 3 种 SBC 的技术规格</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_12">在微控制器开发板与单板计算机之间进行选择</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_13">部署 IoT 项目的 IoT 硬件需求</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_14">安全需求</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_15">易开发性</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_16">数据获取、处理和存储需求</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_17">连接需求</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_18">电源需求</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_19">物理设备设计需求</a>
+        </li>
+        <li class="toc__h3">
+            <a href="#toc_h3_20">成本需求</a>
+        </li>
+        <li class="toc__h2">
+            <a href="#toc_h2_21">结束语</a>
+        </li>
+</ul>        </div>
+        <div id="gitalk-container" class="comment__wrapper wrapper" style="margin: 40px auto"></div>
+        <div id="b3logsolocomments"></div>
+        <div id="vcomment" class="comment__wrapper wrapper" style="margin: 40px auto" data-name="wangning1018" data-postId="1556616771775"></div>
+    <div class="article__bottom">
+        <div class="wrapper">
+            <div class="fn__flex">
+                <div class="item" id="randomArticles"></div>
+                <div class="item" id="relevantArticles"></div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<footer class="footer">
+    <div class="wrapper fn__clear">
+        <div class="fn__left">
+            <br>
+            &copy; 2020
+            <a href="https://aysaml.github.io">码恋</a>
+            &nbsp;&nbsp;<a href="http://www.beian.miit.gov.cn/">京ICP备19022063号-1</a>
+        </div>
+        <div class="fn__right">
+            <a href="https://aysaml.github.io/tags.html" rel="section">
+            标签墙
+            </a>
+            &nbsp;•&nbsp;
+            <a href="https://aysaml.github.io/archives.html">
+            存档
+            </a>
+            &nbsp;•&nbsp;
+            <a rel="archive" href="https://aysaml.github.io/links.html">
+            友链
+            </a>
+            <br>
+            49 文章 &nbsp;
+            <span data-uvstaturl="https://aysaml.github.io">21389</span> 浏览 &nbsp;
+            
+        </div>
+    </div>
+</footer>
+
+<script>
+  var Label = {
+    speech: false,
+    servePath: "https://aysaml.github.io",
+    staticServePath: "https://aysaml.github.io",
+    luteAvailable: false,
+    hljsStyle: 'paraiso-dark',
+    langLabel: "zh_CN",
+    version: "4.3.0",
+    staticSite: true,
+    showCodeBlockLn: true,
+    articleId: "1556616771775",
+  }
+</script>
+<script type="text/javascript"
+        src="https://aysaml.github.io/skins/Casper/js/common.min.js?1595821338136"
+        charset="utf-8"></script>
+
+
+<script type="text/javascript">
+    Util.addScript('https://aysaml.github.io/js/page.min.js?1595821338136', 'soloPageScript')
+    var page = new Page({
+        "commentContentCannotEmptyLabel": "评论不能为空",
+        "oId": "1556616771775",
+        "blogHost": "https://aysaml.github.io",
+        "randomArticles1Label": "随机阅读：",
+        "externalRelevantArticles1Label": "站外相关阅读："
+    });
+    $(document).ready(function () {
+        page.load();
+    page.tips.externalRelevantArticlesDisplayCount = "0";
+        page.loadRandomArticles('<h3>随机阅读</h3>');
+        page.loadRelevantArticles('1556616771775', '<h3>相关阅读</h3>');
+    Skin.initArticle()
+    });
+</script>
+
+</body>
+</html>
+
+<!-- Generated by Latke (https://github.com/88250/latke) in 20ms, 2020/07/29 15:41:17 -->
